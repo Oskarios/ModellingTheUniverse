@@ -13,6 +13,8 @@ initpos1 = vector(0,1,0) # initial position vector of Planet1
 Planet1 = sphere(pos=initpos1,radius=0.05*m1,color=color.blue)
 Star = sphere(pos=vector(0,0,0),radius=0.1,color=color.yellow)
 vel1 = -vector(25, 0, 0) # initial velocity of planet 1
+
+# Added trace for planet
 trace = curve(radius = 0.005, color = color.white)
 
 while step <= maxstep:
