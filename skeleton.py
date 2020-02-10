@@ -20,14 +20,14 @@ class Star:
 
 #Created a reusable class for 
 class Planet:
-    def __init__(self, mass, initpos, vel, radius):
+    def __init__(self, mass, initpos, vel, radius, colour):
         self.mass = mass
         self.initpos = initpos
         self.vel = vel
         self.radius = radius
         self.pos = self.initpos
-        self.sphere = sphere(pos=self.initpos, radius=self.radius*self.mass,color=color.blue)
-        self.trace = curve(radius = 0.005, color = color.white)
+        self.sphere = sphere(pos=self.initpos, radius=self.radius*self.mass,color=colour)
+        self.trace = curve(radius = 0.005, color = colour)
 
     def updateSphere(self):
         self.sphere.pos = self.pos
@@ -57,9 +57,24 @@ class Planet:
 class SolarSystem:
     def __init__(self, planets):
         self.planets = planets
+        self.planets.append(Planet(1,vector(0,1,0), -vector(25,0,0), 0.05, colour=color.green))
+        self.planets.append(Planet(2,vector(0,1.5,0), -vector(15,0,0), 0.05, colour=color.blue))
+
+        self.forces = self.getForces_IP() #Going to be a huge matrix linking the various forces to the required bodies 
+        print(self.forces)
+        print(self.planets)
+
 
     def addPlanet(self, planet):
-        self.planets[] = planet
+        self.planets[0] = planet
+
+    def getForces_IP(self):
+        forces = {}
+        for i in range(0,len(self.planets)):
+            forces[i] = {}
+            for j in range(i+1, len(self.planets)):
+                forces[i][j] = str(i)+str(j)
+        return forces
 
 
     ## REQUIRED METHODS ##
@@ -84,16 +99,19 @@ Star = Star(M, vector(0,0,0), radius=0.1)
 
 
 #Create first planet with OO approach
-Planet1 = Planet(1,vector(0,1,0), -vector(25,0,0), 0.05)
+'Planet1 = Planet(1,vector(0,1,0), -vector(25,0,0), 0.05, colour=color.green)'
 #Create second planet with OO approach
-Planet2 = Planet(2,vector(0,1.5,0), -vector(15,0,0), 0.05)
+'Planet2 = Planet(2,vector(0,1.5,0), -vector(15,0,0), 0.05, colour=color.blue)'
 
-
+system = SolarSystem([])
 while step <= maxstep:
 
     rate(100)  # slow down the animation
     #print (Planet1.pos)
 
+    
+    
+    '''
     # calculate changes in velocities
 
     #Planet1 Star
@@ -116,8 +134,8 @@ while step <= maxstep:
     
 
     #update velocities
-    Planet1.vel += - dv1M - dv21
-    Planet2.vel += - dv2M - dv12
+    Planet1.vel += - dv1M - dv21 + dv12
+    Planet2.vel += - dv2M - dv12 + dv21
     
     # update positions
     Planet1.updatePos()
@@ -133,6 +151,7 @@ while step <= maxstep:
     Total_Energy = Total_KE - Total_PE
 
     print(Total_Energy)
+    '''
 
     step += 1
     
