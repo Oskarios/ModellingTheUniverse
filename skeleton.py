@@ -11,7 +11,7 @@ M = 1 # mass of star (G == 1)
 m1 = 3e-6 # mass of planet 1
 G = 4*(math.pi)**2 #Value of G, assuming radius is 1AU, time is 1 year, and the mass of the planet is 1
 monthlength = 20 #Sets the amount of time between areas between calculated 
-initpos1 = vector(0,1,0) # initial position vector of Planet1
+initpos1 = vector(0,0.5,0) # initial position vector of Planet1
 Planet1 = sphere(pos=initpos1,radius=0.05*m1,color=color.blue)#Initialises the planet
 Star = sphere(pos=vector(0,0,0),radius=0.1,color=color.yellow)#Initialises the star
 vel1 = -vector(2*(math.pi), 0, 0) # initial velocity of planet 1
@@ -19,6 +19,7 @@ trace = curve(radius = 0.005, color = color.white)#Creates a curve which can be 
 posrad = initpos1 #sets the initial vector as the starting position
 areatotal = 0
 count = 0
+standarddeviation = list()
 
 def angle(r1,r2):
     angle1 = acos(dot(r1,r2) / ( (mag(r1)) * (mag(r2)) ) ) #Calculates the angle between the two position vectors
@@ -26,7 +27,7 @@ def angle(r1,r2):
     
 def area(r1, r2, theta):
     area1 = (r1*r2*theta)/2 #Calculates the area
-    print(area1) 
+    #print(area1) 
     return area1
     
 
@@ -53,7 +54,10 @@ for step in range(2928):
         areaelement = area(mag(posrad), mag(Planet1.pos),angle2)#Calculates the area between the vectors
         lineplanet = curve(vector(Planet1.pos), vector(Star.pos)) #Draws lines from the star to the planet
         posrad = copy.copy(Planet1.pos) #Changes the value of the planet vector
-        areatotal = areatotal + areaelement #Adds on the area elements to a total
+        areatotal = areatotal + areaelement
+        standarddeviation.append(areaelement)#Adds on the area elements to a total
 
 
-print(areatotal/count) #Calculates the average area of the sectors
+print(areatotal/count)#Prints the average area
+print(np.std(np.array(standarddeviation))) #Calculates the average area of the sectors
+
