@@ -1,6 +1,7 @@
 # Skeleton code starting point for Yr 1 Theory Group Project
 
 from vpython import *
+import numpy as np
 
 dt = 0.001 # timestep
 step = 1 # loop counter
@@ -59,7 +60,9 @@ class SolarSystem:
         self.planets = planets
         self.planets.append(Planet(1,vector(0,1,0), -vector(25,0,0), 0.05, colour=color.green))
         self.planets.append(Planet(2,vector(0,1.5,0), -vector(15,0,0), 0.05, colour=color.blue))
+        self.planets.append(Planet(2,vector(0,2,0), -vector(15,0,0), 0.05, colour=color.blue))
 
+        self.createForceMatrix()
         self.forces = self.getForces_IP() #Going to be a huge matrix linking the various forces to the required bodies 
         print(self.forces)
         print(self.planets)
@@ -68,13 +71,57 @@ class SolarSystem:
     def addPlanet(self, planet):
         self.planets[0] = planet
 
-    def getForces_IP(self):
+
+    ##This uses dictionaries which isn't going to help
+    def getForces_IP_1(self):
         forces = {}
         for i in range(0,len(self.planets)):
             forces[i] = {}
             for j in range(i+1, len(self.planets)):
                 forces[i][j] = str(i)+str(j)
         return forces
+
+    def createForceMatrix(self):
+        F = [[0 for  i in range(len(self.planets))]for j in range(len(self.planets))]
+        self.F = F
+
+    def getForces_IP(self):
+        #USE NUMPY ARRAYS TO FORM A MATRIX ??
+
+        #Figure out how to do it in regular python first
+        #F = [[0 for i in range(len(self.planets))]]* len(self.planets)
+
+        for i in range(0,len(self.planets)):
+            for j in range(i+1, len(self.planets)):
+                force = self.calcForce(self.planets[i],self.planets[j])
+                self.F[i][j] = force #pretty sure it's not specifically a force but hey-ho
+
+                self.F[j][i] = -1*force 
+        
+        '''
+        for j in range(1,len(self.planets)):
+            for i in range(j-1,len(self.planets)-1):
+                self.F[i][j]=1
+                self.F[j][i] = -1
+        '''
+        '''
+        for i in range(0,len(self.planets)-1):
+            for j in range(i+1, len(self.planets)):
+                
+                self.F[i][j] = str(i)+str(j)
+                #self.F[j][i] = - 1 * self.F[i][j]
+
+            print(i,j)
+            
+        for x in range(0,len(self.planets)-1):
+            for y in range(x+1, len(self.planets)):
+                print(F[x][y])
+                F[y][x] = -1 * F[x][y]
+                #F[j][i] = -F[i][j]
+
+        '''
+        print(self.F)
+        
 
 
     ## REQUIRED METHODS ##
