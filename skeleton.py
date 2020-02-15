@@ -56,13 +56,16 @@ class Planet:
 
 #This class will control the forces present between the bodies within the solar system
 class SolarSystem:
-    def __init__(self, planets):
+    def __init__(self, Star, planets):
+        self.Star = Star
         self.planets = planets
         self.planets.append(Planet(1,vector(0,1,0), -vector(25,0,0), 0.05, colour=color.green))
         self.planets.append(Planet(2,vector(0,1.5,0), -vector(15,0,0), 0.05, colour=color.blue))
         self.planets.append(Planet(2,vector(0,2,0), -vector(15,0,0), 0.05, colour=color.blue))
 
-        self.createForceMatrix()
+        self.F = self.createPlanetMatrix()
+
+        #Do we do this here or do we call it separately -- do it in the loop
         self.forces = self.getForces_IP() #Going to be a huge matrix linking the various forces to the required bodies 
         print(self.forces)
         print(self.planets)
@@ -81,9 +84,9 @@ class SolarSystem:
                 forces[i][j] = str(i)+str(j)
         return forces
 
-    def createForceMatrix(self):
-        F = [[0 for  i in range(len(self.planets))]for j in range(len(self.planets))]
-        self.F = F
+    def createPlanetMatrix(self):
+        M = [[0 for  i in range(len(self.planets))]for j in range(len(self.planets))]
+        return M
 
     def getForces_IP(self):
         #USE NUMPY ARRAYS TO FORM A MATRIX ??
@@ -120,17 +123,32 @@ class SolarSystem:
                 #F[j][i] = -F[i][j]
 
         '''
-        print(self.F)
+        #print(self.F)
+
         
+
+    def updatePlanetVelocities(self):
+        for i in range(len(self.planets)):
+            vel = self.planets[i].vel
+            dviM = self.calcForce(self.Star, self.planets[i])
+            vel -= dviM
+            for j in range(len(self.F[i])):
+                if self.F[i][j] != 0:
+                    vel -= self.F[i][j]
+            self.planets[i].vel = vel
+
+    def updatePlanetPositions(self):
+        for i in range(len(self.planets)):
+            self.planets[i].updatePos()
 
 
     ## REQUIRED METHODS ##
 
         # CALCULATE FORCES BETWEEN BODIES IN SYSTEM
     # I DON'T THINK THIS IS GOING TO WORK
-    def calcForce(self, body, bodyInField):
-        denom = mag(bodyInField.pos - body.pos) ** 3
-        dv = dt * body.pos * bodyInField.mass / denom
+    def calcForce(self, fieldBody, body):
+        denom = mag(body.pos-fieldBody.pos) ** 3
+        dv = dt * body.pos * fieldBody.mass / denom
         return dv
         # CALCULATE TOTAL KINETIC ENERGIES OF BODIES IN SYSTEM
         # CALCULATE TOTAL POTENTIAL ENERGIES OF BODIES IN SYSTEM
@@ -150,13 +168,21 @@ Star = Star(M, vector(0,0,0), radius=0.1)
 #Create second planet with OO approach
 'Planet2 = Planet(2,vector(0,1.5,0), -vector(15,0,0), 0.05, colour=color.blue)'
 
-system = SolarSystem([])
+system = SolarSystem(Star,[])
 while step <= maxstep:
 
     rate(100)  # slow down the animation
     #print (Planet1.pos)
 
+    #Calculate Changes in velocities
+    system.getForces_IP()
     
+
+    #Update Velocities
+    system.updatePlanetVelocities()
+
+    #Update Positions
+    system.updatePlanetPositions()
     
     '''
     # calculate changes in velocities
