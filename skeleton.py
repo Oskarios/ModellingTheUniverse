@@ -59,9 +59,11 @@ class SolarSystem:
     def __init__(self, Star, planets):
         self.Star = Star
         self.planets = planets
+
+        #Create some planets and add them to the planets array
         self.planets.append(Planet(1,vector(0,1,0), -vector(25,0,0), 0.05, colour=color.green))
         self.planets.append(Planet(2,vector(0,1.5,0), -vector(15,0,0), 0.05, colour=color.blue))
-        self.planets.append(Planet(2,vector(0,2,0), -vector(15,0,0), 0.05, colour=color.blue))
+        self.planets.append(Planet(0.4,vector(0,4,0), -vector(15,0,0), 0.05, colour=color.blue))
 
         self.F = self.createPlanetMatrix()
 
@@ -72,16 +74,16 @@ class SolarSystem:
 
 
     def addPlanet(self, planet):
-        self.planets[0] = planet
+        self.planets.append(planet)
 
 
-    ##This uses dictionaries which isn't going to help
+    ##This uses dictionaries which isn't going to help -- ##it also straight up doesn't work
     def getForces_IP_1(self):
         forces = {}
         for i in range(0,len(self.planets)):
             forces[i] = {}
             for j in range(i+1, len(self.planets)):
-                forces[i][j] = str(i)+str(j)
+                forces[i][j] = str(i)+str(j) ## this was a debugging thing
         return forces
 
     def createPlanetMatrix(self):
@@ -96,10 +98,10 @@ class SolarSystem:
 
         for i in range(0,len(self.planets)):
             for j in range(i+1, len(self.planets)):
-                force = self.calcForce(self.planets[i],self.planets[j])
-                self.F[i][j] = force #pretty sure it's not specifically a force but hey-ho
+                #force = self.calcForce(self.planets[i],self.planets[j])
+                self.F[i][j] = self.calcForce(self.planets[i],self.planets[j]) #pretty sure it's not specifically a force but hey-ho
 
-                self.F[j][i] = -1*force 
+                self.F[j][i] = self.calcForce(self.planets[j],self.planets[i])
         
         '''
         for j in range(1,len(self.planets)):
@@ -141,6 +143,27 @@ class SolarSystem:
         for i in range(len(self.planets)):
             self.planets[i].updatePos()
 
+    def getKineticEnergies(self):
+        ke = 0
+        for i in range(len(self.planets)):
+            ke += self.planets[i].getKE()
+        return ke
+
+    def getPotentialEnergies(self):
+        pe = 0
+        for i in range(0,len(self.planets)):
+            for j in range(i+1,len(self.planets)):
+                if self.F[i][j] != 0:
+                    pe -= self.planets[i].getPE(self.planets[j])
+                    pe -= self.planets[j].getPE(self.planets[i])
+        return pe
+
+
+    def getTotalEnergy(self, ke, pe):
+        E = ke - pe
+        return E
+                    
+
 
     ## REQUIRED METHODS ##
 
@@ -169,6 +192,7 @@ Star = Star(M, vector(0,0,0), radius=0.1)
 'Planet2 = Planet(2,vector(0,1.5,0), -vector(15,0,0), 0.05, colour=color.blue)'
 
 system = SolarSystem(Star,[])
+energyPlot = []
 while step <= maxstep:
 
     rate(100)  # slow down the animation
@@ -183,6 +207,14 @@ while step <= maxstep:
 
     #Update Positions
     system.updatePlanetPositions()
+
+    #Push total energy
+    energy = system.getTotalEnergy(system.getKineticEnergies(),system.getPotentialEnergies())
+    print(energy)
+
+    #Instead of just printing energy need to plot it
+
+    #Average a reading over 1 or 2 seconds?
     
     '''
     # calculate changes in velocities
