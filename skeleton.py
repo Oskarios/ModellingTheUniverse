@@ -2,10 +2,12 @@
 
 from vpython import *
 import numpy as np
+import copy as copy
 
 dt = 0.001 # timestep
+global step
 step = 1 # loop counter
-maxstep = 100000
+maxstep = 1000
 
 #Create class for star so that it can be used as a target object later on
 class Star:
@@ -51,6 +53,18 @@ class Planet:
     def getPE(self, target):
         pe = (self.mass * target.mass)/mag(self.pos - target.pos)
         return pe
+        
+        
+    def angle(self, r1,r2):
+        angle1 = acos(dot(r1,r2) / ( (mag(r1)) * (mag(r2)) ) ) #Calculates the angle between the two position vectors
+        return angle1
+    
+    def area(self, r1, r2, theta):
+        area1 = (r1*r2*theta)/2 #Calculates the area 
+        print(f"area = {area1}")
+        return area1
+
+
 
 
 
@@ -63,7 +77,7 @@ class SolarSystem:
         #Create some planets and add them to the planets array
         self.planets.append(Planet(1,vector(0,1,0), -vector(25,0,0), 0.05, colour=color.green))
         self.planets.append(Planet(2,vector(0,1.5,0), -vector(15,0,0), 0.05, colour=color.blue))
-        self.planets.append(Planet(0.4,vector(0,4,0), -vector(15,0,0), 0.05, colour=color.blue))
+        self.planets.append(Planet(0.4,vector(0,2,0), -vector(15,0,0), 0.05, colour=color.blue))
 
         self.F = self.createPlanetMatrix()
 
@@ -102,32 +116,6 @@ class SolarSystem:
                 self.F[i][j] = self.calcForce(self.planets[i],self.planets[j]) #pretty sure it's not specifically a force but hey-ho
 
                 self.F[j][i] = self.calcForce(self.planets[j],self.planets[i])
-        
-        '''
-        for j in range(1,len(self.planets)):
-            for i in range(j-1,len(self.planets)-1):
-                self.F[i][j]=1
-                self.F[j][i] = -1
-        '''
-        '''
-        for i in range(0,len(self.planets)-1):
-            for j in range(i+1, len(self.planets)):
-                
-                self.F[i][j] = str(i)+str(j)
-                #self.F[j][i] = - 1 * self.F[i][j]
-
-            print(i,j)
-            
-        for x in range(0,len(self.planets)-1):
-            for y in range(x+1, len(self.planets)):
-                print(F[x][y])
-                F[y][x] = -1 * F[x][y]
-                #F[j][i] = -F[i][j]
-
-        '''
-        #print(self.F)
-
-        
 
     def updatePlanetVelocities(self):
         for i in range(len(self.planets)):
@@ -136,7 +124,7 @@ class SolarSystem:
             vel -= dviM
             for j in range(len(self.F[i])):
                 if self.F[i][j] != 0:
-                    vel -= self.F[i][j]
+                    vel += self.F[i][j]
             self.planets[i].vel = vel
 
     def updatePlanetPositions(self):
@@ -162,7 +150,9 @@ class SolarSystem:
     def getTotalEnergy(self, ke, pe):
         E = ke - pe
         return E
-   
+                    
+    
+    #This updates position and velocities automatically
     def updatePos_EulerCromer(self):
         vels = []
         for i in range(len(self.planets)):
@@ -183,7 +173,7 @@ class SolarSystem:
             
         for i in range(len(self.planets)):
             self.planets[i].vel = vels[i]
-                    
+
     ## REQUIRED METHODS ##
 
         # CALCULATE FORCES BETWEEN BODIES IN SYSTEM
@@ -195,21 +185,29 @@ class SolarSystem:
         # CALCULATE TOTAL KINETIC ENERGIES OF BODIES IN SYSTEM
         # CALCULATE TOTAL POTENTIAL ENERGIES OF BODIES IN SYSTEM
         # CALCULATE TOTAL ENERGY OF SYSTEM
-
+        
+    def KeplerForPlanets(self):
+        for i in range(len(self.planets)):
+            self.Kepler(self.planets[i],step)
+        
+    def Kepler(self, Planet,step):
+        areatotal = 0
+        monthlength = 100
+        pos1 = Planet.initpos
+        angle2 = Planet.angle(pos1, Planet.pos) #Calls the function to calculate the angle between the vectors
+        areaelement = Planet.area(mag(pos1), mag(Planet.pos),angle2)#Calculates the area between the vectors
+        lineplanet = curve(vector(Planet.pos), vector(self.Star.pos)) #Draws lines from the star to the planet
+        pos1 = copy.copy(Planet.pos) #Changes the value of the planet vector
+        areatotal = areatotal + areaelement
+                
+            
 
 #  Define the star, planets and constants
 M = 1000 # mass of star (G == 1)
 #Star = sphere(pos=vector(0,0,0),radius=0.1,color=color.yellow)
 
 Star = Star(M, vector(0,0,0), radius=0.1)
-
-
-
-#Create first planet with OO approach
-'Planet1 = Planet(1,vector(0,1,0), -vector(25,0,0), 0.05, colour=color.green)'
-#Create second planet with OO approach
-'Planet2 = Planet(2,vector(0,1.5,0), -vector(15,0,0), 0.05, colour=color.blue)'
-
+monthlength = 20
 system = SolarSystem(Star,[])
 energyPlot = []
 while step <= maxstep:
@@ -220,63 +218,26 @@ while step <= maxstep:
     #Calculate Changes in velocities
     system.getForces_IP()
     
+    if step%monthlength == 0 and step !=0:
+        system.KeplerForPlanets()
 
     #Update Velocities
     system.updatePlanetVelocities()
 
     #Update Positions
-    system.updatePlanetPositions()
+    system.updatePlanetPositions()   
+    
+    #system.updatePos_EulerCromer()
 
     #Push total energy
     energy = system.getTotalEnergy(system.getKineticEnergies(),system.getPotentialEnergies())
-    print(energy)
+    #print(energy)
 
     #Instead of just printing energy need to plot it
 
     #Average a reading over 1 or 2 seconds?
     
-    '''
-    # calculate changes in velocities
-
-    #Planet1 Star
-    denom1M = mag(Planet1.pos) ** 3 
-    dv1M = dt * Planet1.pos * M / denom1M
-
-    #Planet2 Star
-    denom2M = mag(Planet2.pos)** 3
-    dv2M = dt * Planet2.pos * M / denom2M
-
-    #Planet1 on Planet 2
-    denom12 = mag(Planet2.pos - Planet1.pos) ** 3
-    dv12 = dt * Planet1.pos * Planet2.mass / denom12
-
-    
-    #Planet2 on Planet1
-    denom21 = mag(Planet1.pos - Planet2.pos) ** 3
-    dv21 =  dt * Planet2.pos * Planet1.mass / denom21
-    
-    
-
-    #update velocities
-    Planet1.vel += - dv1M - dv21 + dv12
-    Planet2.vel += - dv2M - dv12 + dv21
-    
-    # update positions
-    Planet1.updatePos()
-    Planet2.updatePos()
-    
-    #Calculate total KE
-    Total_KE = Planet1.getKE() + Planet2.getKE()
-
-    #Calculate total potential energy
-    Total_PE = Planet1.getPE(Planet2) + Planet2.getPE(Planet1) + Planet1.getPE(Star) + Planet2.getPE(Star)
-
-    #Calculate the total energy of the solar system (the Hamiltonian)
-    Total_Energy = Total_KE - Total_PE
-
-    print(Total_Energy)
-    '''
-
     step += 1
     
 print("end of program")
+print(areatotal)
