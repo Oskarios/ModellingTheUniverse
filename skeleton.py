@@ -4,23 +4,22 @@ from vpython import *
 import math
 import numpy as np
 import copy as copy
-dt = 1/5856 # timestep
+dt = 1/365 # timestep
 
 #  Define the star, planets and constants
-M = 5 # mass of star (G == 1)
+M = 0.75 # mass of star (G == 1)
 m1 = 3e-6 # mass of planet 1
 G = 4*(math.pi)**2 #Value of G, assuming radius is 1AU, time is 1 year, and the mass of the planet is 1
 monthlength = 20 #Sets the amount of time between areas between calculated 
 initpos1 = vector(0,1,0) # initial position vector of Planet1
 Planet1 = sphere(pos=initpos1,radius=0.05*m1,color=color.blue)#Initialises the planet
 Star = sphere(pos=vector(0,0,0),radius=0.1,color=color.yellow)#Initialises the star
-vel1 = -vector(1.5*(math.pi), 0, 0) # initial velocity of planet 1
+vel1 = -vector(2*(math.pi), 0, 0) # initial velocity of planet 1
 trace = curve(radius = 0.005, color = color.white)#Creates a curve which can be drawn
 posrad = initpos1 #sets the initial vector as the starting position
 areatotal = 0
 count = 0
 standarddeviation = list()
-
 
 def angle(r1,r2):
     angle1 = acos(dot(r1,r2) / ( (mag(r1)) * (mag(r2)) ) ) #Calculates the angle between the two position vectors
@@ -30,40 +29,34 @@ def area(r1, r2, theta):
     area1 = (r1*r2*theta)/2 #Calculates the area
     #print(area1) 
     return area1
+#sets first position to use for first interval
+firstpos = Planet1.pos
+
+#print("initial" + str(initpos))
+# initialises acceleration and second position first interval
+accel = - G * M * firstpos / (mag(firstpos)**3)
+secondpos = Planet1.pos + vel1*dt + 0.5 * accel * (dt)**2
+print(secondpos)
+for step in range(1000):
     
-
-for step in range(2928 * 2):
-
     # slow down the animation
-    #print (Planet1.pos)
-    #rate(100)
+    rate(150)
     # calculate changes in velocities
-    #denom1M = mag(Planet1.pos) ** 3 #Calculates the denominator for change in velocity
-    #dv1M = G * dt * Planet1.pos * M / denom1M #Calculates the change in velocity
-    
-    
-    
-    
-    # update velocities
-   # vel1 = vel1 - dv1M
-    
     
     
     # update positions
-    #Planet1.pos = Planet1.pos + vel1 * dt
-    position1 = Planet1.pos
-    accel1 = -1 * G * position1/mag(position1)**3
-    position2 = position1 + (vel1 * dt) + (0.5 * (accel1)*dt)
-    accel2 = -1 * G * position2/mag(position2)**3
-    vel2 = vel1 + 0.5  * (accel1 + accel2) * dt
+    #calculate a(i) 
+    accel2 = - G * M *secondpos / (mag(secondpos)** 3)
+    Planet1.pos = (2 * secondpos) - firstpos + accel2 * (dt)**2
 
-    Planet1.pos = Planet1.pos +  vel2 * dt
-    vel1 =vel2
-    print(Planet1.pos)
-                                           
+    #update curve
+    trace.append(Planet1.pos)
+
+    #update new intervals of position
+    firstpos = copy.copy(secondpos)
+    secondpos = copy.copy(Planet1.pos)
+
     
-    trace.append(Planet1.pos) #Traces the planet and draws the curve
-       
     if step%(monthlength) == 0 and step != 0: #Ignores the first position
         count = count + 1
         angle2 = angle(posrad, Planet1.pos) #Calls the function to calculate the angle between the vectors
@@ -72,7 +65,7 @@ for step in range(2928 * 2):
         posrad = copy.copy(Planet1.pos) #Changes the value of the planet vector
         areatotal = areatotal + areaelement
         standarddeviation.append(areaelement)#Adds on the area elements to a total
-
+    
 
 print(areatotal/count)#Prints the average area
 print(np.std(np.array(standarddeviation))) #Calculates the average area of the sectors
