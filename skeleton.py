@@ -21,14 +21,19 @@ class Star:
 
 #Created a reusable class for 
 class Planet:
-    def __init__(self, mass, initpos, vel, radius, colour):
+    def __init__(self, mass, initpos, vel, radius, colour, moons=[]):
         self.mass = mass
         self.initpos = initpos
         self.vel = vel
         self.radius = radius
         self.pos = self.initpos
+        #Array of moons planet has
+        self.moons = moons
         self.sphere = sphere(pos=self.initpos, radius=self.radius*self.mass,color=colour)
         self.trace = curve(radius = 0.005, color = colour)
+        if len(moons) > 0:
+            M = self.createMoonMatrix()
+            
 
     def updateSphere(self):
         self.sphere.pos = self.pos
@@ -54,6 +59,36 @@ class Planet:
 
 
 
+
+class Moon:
+    def __init__(self, parent, mass, vel, radius, orbit_rad):
+        self.parent = parent
+        self.mass = mass
+        self.vel = vel
+        self.radius = radius
+        #please make sure that the orbit radius is very small
+        self.pos = self.parent.pos + vector(0,-orbit_rad,0)
+        self.sphere = sphere(pos=self.pos, radius=self.radius, color=color.white)
+        self.trace = curve(radius=0.001, color=color.white)
+
+
+    #REQUIRED METHODS
+        # - NEED TO CALCULATE DV BETWEEN  ITSELF AND MOON
+
+        def updateSphere(self):
+            self.sphere.pos = self.pos
+
+        def updatePos(self):
+            self.pos = self.pos+self.vel * dt
+            self.updateSphere()
+            self.updateTrace
+
+        def updateTrace(self):
+            self.trace.append(self.pos)
+
+        
+
+
 #This class will control the forces present between the bodies within the solar system
 class SolarSystem:
     def __init__(self, Star, planets):
@@ -72,7 +107,7 @@ class SolarSystem:
         print(self.forces)
         print(self.planets)
 
-
+    #Adds a planet to the solar system after initialisation
     def addPlanet(self, planet):
         self.planets.append(planet)
 
@@ -86,6 +121,7 @@ class SolarSystem:
                 forces[i][j] = str(i)+str(j) ## this was a debugging thing
         return forces
 
+    #Basically creates N X N square adjacency matrix for N number of planets
     def createPlanetMatrix(self):
         M = [[0 for  i in range(len(self.planets))]for j in range(len(self.planets))]
         return M
@@ -128,7 +164,7 @@ class SolarSystem:
         #print(self.F)
 
         
-
+    #Updates all the velocities of all planets in solar system
     def updatePlanetVelocities(self):
         for i in range(len(self.planets)):
             vel = self.planets[i].vel
@@ -136,19 +172,24 @@ class SolarSystem:
             vel -= dviM
             for j in range(len(self.F[i])):
                 if self.F[i][j] != 0:
-                    vel -= self.F[i][j]
+                    #Don't know whether should be + or - but + gives constant energy
+                    vel += self.F[i][j]
             self.planets[i].vel = vel
 
+    #updates the position of all planets in solar system 
     def updatePlanetPositions(self):
         for i in range(len(self.planets)):
             self.planets[i].updatePos()
-
+            #Also want to update the positions of moons if the planet has them
+            
+    #Gets the kinetic energy of all planets in self.planets
     def getKineticEnergies(self):
         ke = 0
         for i in range(len(self.planets)):
             ke += self.planets[i].getKE()
         return ke
-
+    
+    #Gets the potential energies of all planets in system
     def getPotentialEnergies(self):
         pe = 0
         for i in range(0,len(self.planets)):
