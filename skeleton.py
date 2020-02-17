@@ -7,19 +7,20 @@ import copy as copy
 dt = 1/5856 # timestep
 
 #  Define the star, planets and constants
-M = 1 # mass of star (G == 1)
+M = 5 # mass of star (G == 1)
 m1 = 3e-6 # mass of planet 1
 G = 4*(math.pi)**2 #Value of G, assuming radius is 1AU, time is 1 year, and the mass of the planet is 1
 monthlength = 20 #Sets the amount of time between areas between calculated 
-initpos1 = vector(0,0.5,0) # initial position vector of Planet1
+initpos1 = vector(0,1,0) # initial position vector of Planet1
 Planet1 = sphere(pos=initpos1,radius=0.05*m1,color=color.blue)#Initialises the planet
 Star = sphere(pos=vector(0,0,0),radius=0.1,color=color.yellow)#Initialises the star
-vel1 = -vector(2*(math.pi), 0, 0) # initial velocity of planet 1
+vel1 = -vector(1.5*(math.pi), 0, 0) # initial velocity of planet 1
 trace = curve(radius = 0.005, color = color.white)#Creates a curve which can be drawn
 posrad = initpos1 #sets the initial vector as the starting position
 areatotal = 0
 count = 0
 standarddeviation = list()
+
 
 def angle(r1,r2):
     angle1 = acos(dot(r1,r2) / ( (mag(r1)) * (mag(r2)) ) ) #Calculates the angle between the two position vectors
@@ -31,20 +32,35 @@ def area(r1, r2, theta):
     return area1
     
 
-for step in range(2928):
+for step in range(2928 * 2):
 
     # slow down the animation
     #print (Planet1.pos)
     #rate(100)
     # calculate changes in velocities
-    denom1M = mag(Planet1.pos) ** 3 #Calculates the denominator for change in velocity
-    dv1M = G * dt * Planet1.pos * M / denom1M #Calculates the change in velocity
+    #denom1M = mag(Planet1.pos) ** 3 #Calculates the denominator for change in velocity
+    #dv1M = G * dt * Planet1.pos * M / denom1M #Calculates the change in velocity
+    
+    
+    
     
     # update velocities
-    vel1 = vel1 - dv1M 
+   # vel1 = vel1 - dv1M
+    
+    
     
     # update positions
-    Planet1.pos = Planet1.pos + vel1 * dt 
+    #Planet1.pos = Planet1.pos + vel1 * dt
+    position1 = Planet1.pos
+    accel1 = -1 * G * position1/mag(position1)**3
+    position2 = position1 + (vel1 * dt) + (0.5 * (accel1)*dt)
+    accel2 = -1 * G * position2/mag(position2)**3
+    vel2 = vel1 + 0.5  * (accel1 + accel2) * dt
+
+    Planet1.pos = Planet1.pos +  vel2 * dt
+    vel1 =vel2
+    print(Planet1.pos)
+                                           
     
     trace.append(Planet1.pos) #Traces the planet and draws the curve
        
