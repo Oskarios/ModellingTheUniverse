@@ -162,9 +162,28 @@ class SolarSystem:
     def getTotalEnergy(self, ke, pe):
         E = ke - pe
         return E
+   
+    def updatePos_EulerCromer(self):
+        vels = []
+        for i in range(len(self.planets)):
+            vel = self.planets[i].vel
+            dv = -1 * self.calcForce(self.Star, self.planets[i])
+            print(dv)
+            
+            
+            for j in range(len(self.F[i])):
+                if self.F[i][j]!=0:
+                    dv += self.F[i][j]
+                
+                    vel += dv
+                    vels.append(vel)
+            
+            
+        self.updatePlanetPositions()
+            
+        for i in range(len(self.planets)):
+            self.planets[i].vel = vels[i]
                     
-
-
     ## REQUIRED METHODS ##
 
         # CALCULATE FORCES BETWEEN BODIES IN SYSTEM
