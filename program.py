@@ -138,6 +138,24 @@ class SolarSystem:
         #Update the velocities
         
         self.updateVelocities(dvs_arr)
+    
+    def Euler(self):
+        
+        '''for i in range(self.pairs.shape[0]):
+            self.pairs[i][1].dv += self.calcDV(self.pairs[i][0],self.pairs[i][1])
+            #self.pairs[i][1].pos += self.pairs[i][1].vel * self.dt
+            #dv_arr = np.append(dv_arr,self.calcDV(self.pairs[i][0],self.pairs[i][1]))
+            
+            
+            
+        for i in range(self.bodies.size):
+            self.bodies[i].vel += self.bodies[i].dv * self.dt
+            self.bodies[i].pos += self.pairs[i][1].vel * self.dt'''
+            
+        for i in range(self.pairs.shape[0]):
+            
+            self.pairs[i][1].vel += self.calcDV(self.pairs[i][0],self.pairs[i][1])
+            self.pairs[i][1].pos += self.pairs[i][1].vel * self.dt     
         
     
     def updatePositions(self,dv_arr):
@@ -158,7 +176,10 @@ class CelestialBody:
         self.mass = mass
         self.pos = pos
         self.vel = vel
+        self.temppos = self.pos
+        self.tempvel = self.vel
         self.radius = radius
+        self.dv = vector(0,0,0)
     
     def updatePos(self, dt):
         self.pos = self.pos + self.vel * dt
@@ -170,6 +191,18 @@ class CelestialBody:
     def getPE(self, target):
         pe = (self.mass*target.mass)/mag(self.pos - target.pos)
         return pe
+
+class BodyRenderer:
+    def __init__(self,mass,radius,colour):
+        self.mass = mass
+        self.radius = radius
+        self.sphere =  sphere(pos=vector(0,0,0), radius=self.radius*self.mass,color=colour)
+        self.trace = curve(radius = 0.0025, color = colour)
+        
+    def updateBody(self,pos):
+        self.sphere.pos = pos
+        self.trace.append(pos)
+                
 
 class Simulation:
     def __init__(self,system,dt,maxstep):        
@@ -184,12 +217,16 @@ class Simulation:
         self.bake = np.array([])
         
     def run(self):
+        
+        print(self.system.pairs)
+        
         while self.step <= self.maxstep:
             #rate(100) Don't need to limit this as this is running the simulation
             
             bakeStep = np.array([])
             for i in range(self.nbodies):
-                bakeStep = np.append(bakeStep,(self.system.bodies[i].pos,self.system.bodies[i].vel))
+                bakeStep = np.append(bakeStep,self.system.bodies[i].pos)
+                self.system.bodies[i].dv = vector(0,0,0)
                 #bakeStep = np.append(bakeStep,)
             
             ke = self.system.getKineticEnergies()
@@ -202,15 +239,21 @@ class Simulation:
             
             #print(bakeStep)
             
-            self.bake = np.reshape(np.append(self.bake,bakeStep),(self.step + 1,2*self.nbodies + 3))
+            self.bake = np.reshape(np.append(self.bake,bakeStep),(self.step+1,self.nbodies+3))
             
             
             
             #Add the new row to the PHAT array 
             #self.bake = np.vstack((bake,bakeStep))
-            self.system.VelocityVerlet()
+            
+            
+            #self.system.VelocityVerlet()
+            
+            self.system.Euler()
+            
             self.step += 1
         print(self.bake)
+        print(self.bake[:,-1])
         
     def render(self):
         #this renders the whole baked simulation in vpython
@@ -223,17 +266,30 @@ class Simulation:
             sunpos = self.bake[i][0]
             
         '''
-        return False
+        renderers = np.array([])
+        for i in range(self.nbodies):
+            renderers = np.append(renderers,BodyRenderer(self.system.bodies[i].mass,self.system.bodies[i].radius,color.white))
+        
+        print(renderers)
+        
+        
+        
+        for i in range(self.bake.shape[0]):
+            rate(100)
+            for j in range(renderers.size):
+                renderers[j].updateBody(self.bake[i][j])
+            
 
-STAR = CelestialBody(1000,vector(0,0,0),vector(0,0,0),0.1)
-PLANET1 = CelestialBody(1, vector(0,1,0),-vector(25,0,0),0.05)
-PLANET2 = CelestialBody(2, vector(0,1.5,0),-vector(15,0,0),0.05)
-PLANET3 = CelestialBody(0.4, vector(0,4,0), -vector(15,0,0),0.05)
+STAR = CelestialBody(1000,vector(0,0,0),vector(0,0,0),0.0001)
+PLANET1 = CelestialBody(1, vector(0,1,0),-vector(25,0,0),0.01)
+PLANET2 = CelestialBody(0.5, vector(0,3,0),-vector(10,0,0),0.01)
+PLANET3 = CelestialBody(0.1, vector(0,4.5,0), -vector(3,0,0),0.01)
 
-BODIES = np.array([STAR,PLANET1,PLANET2,PLANET3])
+BODIES = np.array([STAR,PLANET1,PLANET2, PLANET3])
 
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
 sim = Simulation(SYSTEM,0.001,10000)
 sim.run()
+sim.render()

@@ -69,6 +69,8 @@ g = np.array([])
 h = np.array([0,1,2,3,4,5])
 
 
+a = np.array([[0,1,2],[3,4,5]])
+print(a[:,-1])
 
 
-print(np.reshape(h,(2,3)))
+#print(np.reshape(h,(2,3)))
