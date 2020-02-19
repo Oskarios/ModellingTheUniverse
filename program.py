@@ -179,7 +179,7 @@ class CelestialBody:
         self.temppos = self.pos
         self.tempvel = self.vel
         self.radius = radius
-        self.dv = vector(0,0,0)
+        
     
     def updatePos(self, dt):
         self.pos = self.pos + self.vel * dt
@@ -226,7 +226,6 @@ class Simulation:
             bakeStep = np.array([])
             for i in range(self.nbodies):
                 bakeStep = np.append(bakeStep,self.system.bodies[i].pos)
-                self.system.bodies[i].dv = vector(0,0,0)
                 #bakeStep = np.append(bakeStep,)
             
             ke = self.system.getKineticEnergies()
@@ -252,8 +251,12 @@ class Simulation:
             self.system.Euler()
             
             self.step += 1
+        print("FINAL BAKE")
         print(self.bake)
+        print("/FINAL BAKE")
         print(self.bake[:,-1])
+        
+        #np.savetxt("simulation.csv",self.bake)
         
     def render(self):
         #this renders the whole baked simulation in vpython
@@ -281,9 +284,9 @@ class Simulation:
             
 
 STAR = CelestialBody(1000,vector(0,0,0),vector(0,0,0),0.0001)
-PLANET1 = CelestialBody(1, vector(0,1,0),-vector(25,0,0),0.01)
-PLANET2 = CelestialBody(0.5, vector(0,3,0),-vector(10,0,0),0.01)
-PLANET3 = CelestialBody(0.1, vector(0,4.5,0), -vector(3,0,0),0.01)
+PLANET1 = CelestialBody(1, vector(0,1,0),-vector(25,0,0),0.1)
+PLANET2 = CelestialBody(0.5, vector(0,3,0),-vector(10,0,0),0.1)
+PLANET3 = CelestialBody(0.1, vector(0,4.5,0), -vector(3,0,0),0.1)
 
 BODIES = np.array([STAR,PLANET1,PLANET2, PLANET3])
 
