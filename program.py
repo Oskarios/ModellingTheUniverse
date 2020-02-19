@@ -9,6 +9,9 @@ from vpython import *
 import numpy as np
 import matplotlib as mp
 from itertools import permutations
+from scipy import signal
+import math
+
 '''
 dt = 0.001
 step = 1
@@ -254,7 +257,14 @@ class Simulation:
         print("FINAL BAKE")
         print(self.bake)
         print("/FINAL BAKE")
-        print(self.bake[:,-1])
+        #print(self.bake[:,-1])
+        
+        self.energies = signal.resample(self.bake[:,-1],100)
+        self.pes = signal.resample(self.bake[:,-2],100)
+        self.kes = signal.resample(self.bake[:, -3],100)
+        
+        
+        
         
         #np.savetxt("simulation.csv",self.bake)
         
@@ -269,30 +279,69 @@ class Simulation:
             sunpos = self.bake[i][0]
             
         '''
+        
         renderers = np.array([])
         for i in range(self.nbodies):
             renderers = np.append(renderers,BodyRenderer(self.system.bodies[i].mass,self.system.bodies[i].radius,color.white))
-        
+        '''
         print(renderers)
         
+        '''
         
+        #self.energies = np.reshape(self.energies,(100,100))
+        print("FUCK")
+        print(self.energies)
+        print("YOU")
+        
+        #Evals = np.mean(self.energies,axis=1)
+        
+        #Eerror = np.std(self.energies,axis=1,dtype=np.float64)/np.sqrt(self.energies.shape[1])
+        #print(Evals)
+       # print(Eerror)
+        #mp.pyplot.errorbar(np.array([i*100 for i in range(Evals.size)]),Evals,Eerror,label="Total Energy",color='r',ls='-', marker='x',capsize=5,capthick=1,ecolor='r')
+        
+        
+        mp.pyplot.plot(self.energies,'r',label="Total Energy")
+        mp.pyplot.plot(self.pes,'g',label="Potential Energy")
+        mp.pyplot.plot(self.kes,'b',label="Kinetic Energy")
+        
+        
+        '''
+        self.energyPlot(self.energies,"Total Energy","r")
+        self.energyPlot(self.pes,"Potential Energy","g")
+        self.energyPlot(self.kes,"Kinetic Energy","b")
+        '''
+        
+        mp.pyplot.xlabel("Time (samples)")
+        mp.pyplot.ylabel("Energy")
+        mp.pyplot.legend()
+        mp.pyplot.show()
+            
         
         for i in range(self.bake.shape[0]):
             rate(100)
             for j in range(renderers.size):
                 renderers[j].updateBody(self.bake[i][j])
-            
+                
+    def energyPlot(self,energies_raw,label,colour):
+        energies = np.reshape(energies_raw,(100,100))
+        values = np.mean(energies,axis=1)
+        errors = np.std(energies,axis=1,dtype=np.float64)/np.sqrt(energies.shape[1])
+        mp.pyplot.errorbar(np.array([i*100 for i in range(values.size)]),values,errors,label=label,color=colour,ls='-', marker='x',capsize=5,capthick=1,ecolor=colour)
+        
+        
+        
 
 STAR = CelestialBody(1000,vector(0,0,0),vector(0,0,0),0.0001)
 PLANET1 = CelestialBody(1, vector(0,1,0),-vector(25,0,0),0.1)
 PLANET2 = CelestialBody(0.5, vector(0,3,0),-vector(10,0,0),0.1)
 PLANET3 = CelestialBody(0.1, vector(0,4.5,0), -vector(3,0,0),0.1)
 
-BODIES = np.array([STAR,PLANET1,PLANET2, PLANET3])
+BODIES = np.array([STAR,PLANET1,PLANET2])
 
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
-sim = Simulation(SYSTEM,0.001,10000)
+sim = Simulation(SYSTEM,0.001,10000-1)
 sim.run()
 sim.render()
