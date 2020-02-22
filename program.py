@@ -8,7 +8,6 @@ Created on Mon Feb 17 20:50:34 2020
 from vpython import *
 import numpy as np
 import matplotlib as mp
-from itertools import permutations
 from scipy import signal
 import math
 
@@ -172,11 +171,25 @@ class SolarSystem:
         for i in range(self.pairs.shape[0]):
             self.pairs[i][1].vel += 0.5 * (dvs_arr[i][0] + dvs_arr[i][1])
                 
-            
-
+        
+    
+        
+    def Kepler(self, Planet,step):
+        areatotal = 0
+        monthlength = 100
+        pos1 = Planet.initpos
+        angle2 = Planet.angle(pos1, Planet.pos) #Calls the function to calculate the angle between the vectors
+        areaelement = Planet.area(mag(pos1), mag(Planet.pos),angle2)#Calculates the area between the vectors
+        #lineplanet = curve(vector(Planet.pos), vector(self.Star.pos)) #Draws lines from the star to the planet
+        #pos1 = copy.copy(Planet.pos) #Changes the value of the planet vector
+        areatotal = areatotal + areaelement
+        return areatotal
+                
+        
 class CelestialBody:
     def __init__(self, mass, pos, vel, radius):
         self.mass = mass
+        self.initpos = pos
         self.pos = pos
         self.vel = vel
         self.temppos = self.pos
@@ -208,13 +221,14 @@ class BodyRenderer:
                 
 
 class Simulation:
-    def __init__(self,system,dt,maxstep):        
+    def __init__(self,system,monthLength,dt,maxstep):        
         self.system = system
+        self.monthLength = monthLength
         self.system.dt = dt
         self.nbodies = self.system.numBodies
         #self.dt = dt
         self.maxstep = maxstep
-        self.step = 0
+        self.step = 1
         
         #we bake a simulation so I call the big array that stores data "bake"
         self.bake = np.array([])
@@ -231,6 +245,14 @@ class Simulation:
                 bakeStep = np.append(bakeStep,self.system.bodies[i].pos)
                 #bakeStep = np.append(bakeStep,)
             
+            areas = np.array([0 for i in range(1,self.nbodies)])
+            
+            if self.step % self.monthLength == 0:
+                areas = self.KeplerForPlanets(self.step)
+                
+                            
+            bakeStep = np.append(bakeStep,areas)
+            
             ke = self.system.getKineticEnergies()
             pe = self.system.getPotentialEnergies()
             
@@ -241,7 +263,7 @@ class Simulation:
             
             #print(bakeStep)
             
-            self.bake = np.reshape(np.append(self.bake,bakeStep),(self.step+1,self.nbodies+3))
+            self.bake = np.reshape(np.append(self.bake,bakeStep),(self.step,2*self.nbodies+2))
             
             
             
@@ -254,16 +276,25 @@ class Simulation:
             self.system.Euler()
             
             self.step += 1
-        print("FINAL BAKE")
+        '''print("FINAL BAKE")
         print(self.bake)
         print("/FINAL BAKE")
         #print(self.bake[:,-1])
+        '''
+        
+        print(self.bake[0])
         
         self.energies = signal.resample(self.bake[:,-1],100)
         self.pes = signal.resample(self.bake[:,-2],100)
         self.kes = signal.resample(self.bake[:, -3],100)
+     
         
-        
+    
+    def KeplerForPlanets(self,step):
+        areas = np.array([])
+        for i in range(1,self.bodies.size): # The first body is a star soo...
+            areas = np.append(areas,self.Kepler(self.bodies[i],step))
+        return areas
         
         
         #np.savetxt("simulation.csv",self.bake)
@@ -289,9 +320,6 @@ class Simulation:
         '''
         
         #self.energies = np.reshape(self.energies,(100,100))
-        print("FUCK")
-        print(self.energies)
-        print("YOU")
         
         #Evals = np.mean(self.energies,axis=1)
         
@@ -342,6 +370,6 @@ BODIES = np.array([STAR,PLANET1,PLANET2])
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
-sim = Simulation(SYSTEM,0.001,10000-1)
+sim = Simulation(SYSTEM,0.001,20,10000)
 sim.run()
 sim.render()

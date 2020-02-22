@@ -219,7 +219,9 @@ while step <= maxstep:
     system.getForces_IP()
     
     if step%monthlength == 0 and step !=0:
-        system.KeplerForPlanets()
+        areas = system.KeplerForPlanets()
+    else:
+        areas = np.array([0 for i in range(1,self.nbodies)])
 
     #Update Velocities
     system.updatePlanetVelocities()
