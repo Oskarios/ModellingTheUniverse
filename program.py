@@ -343,9 +343,6 @@ class Simulation:
         #mp.pyplot.errorbar(np.array([i*100 for i in range(Evals.size)]),Evals,Eerror,label="Total Energy",color='r',ls='-', marker='x',capsize=5,capthick=1,ecolor='r')
         
         
-        mp.pyplot.plot(self.energies,'r',label="Total Energy")
-        mp.pyplot.plot(self.pes,'g',label="Potential Energy")
-        mp.pyplot.plot(self.kes,'b',label="Kinetic Energy")
         
         
         '''
@@ -354,10 +351,8 @@ class Simulation:
         self.energyPlot(self.kes,"Kinetic Energy","b")
         '''
         
-        mp.pyplot.xlabel("Time (samples)")
-        mp.pyplot.ylabel("Energy")
-        mp.pyplot.legend()
-        mp.pyplot.show()
+        self.plotEnergies()
+        self.plotAreas()
             
         
         for i in range(self.bake.shape[0]):
@@ -371,6 +366,23 @@ class Simulation:
         errors = np.std(energies,axis=1,dtype=np.float64)/np.sqrt(energies.shape[1])
         mp.pyplot.errorbar(np.array([i*100 for i in range(values.size)]),values,errors,label=label,color=colour,ls='-', marker='x',capsize=5,capthick=1,ecolor=colour)
         
+    def plotEnergies(self):
+        mp.pyplot.plot(self.energies,'r',label="Total Energy")
+        mp.pyplot.plot(self.pes,'g',label="Potential Energy")
+        mp.pyplot.plot(self.kes,'b',label="Kinetic Energy")
+        mp.pyplot.xlabel("Time (samples)")
+        mp.pyplot.ylabel("Energy")
+        mp.pyplot.legend()
+        mp.pyplot.show()
+        
+    def plotAreas(self):
+        for i in range(self.nbodies-1):
+            areas = self.bake[:,self.nbodies+i]
+            mp.pyplot.plot(areas,label="Planet " + str(i+1))
+        mp.pyplot.xlabel("Time (samples)")
+        mp.pyplot.ylabel("Area swept out")
+        mp.pyplot.legend()
+        mp.pyplot.show()
         
         
 
