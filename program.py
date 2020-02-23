@@ -9,7 +9,7 @@ from vpython import *
 import numpy as np
 import matplotlib as mp
 from scipy import signal
-import math
+
 
 '''
 dt = 0.001
@@ -174,16 +174,7 @@ class SolarSystem:
         
     
         
-    def Kepler(self, Planet,step):
-        areatotal = 0
-        monthlength = 100
-        pos1 = Planet.initpos
-        angle2 = Planet.angle(pos1, Planet.pos) #Calls the function to calculate the angle between the vectors
-        areaelement = Planet.area(mag(pos1), mag(Planet.pos),angle2)#Calculates the area between the vectors
-        #lineplanet = curve(vector(Planet.pos), vector(self.Star.pos)) #Draws lines from the star to the planet
-        #pos1 = copy.copy(Planet.pos) #Changes the value of the planet vector
-        areatotal = areatotal + areaelement
-        return areatotal
+
                 
         
 class CelestialBody:
@@ -207,6 +198,15 @@ class CelestialBody:
     def getPE(self, target):
         pe = (self.mass*target.mass)/mag(self.pos - target.pos)
         return pe
+    
+    def angle(self, r1,r2):
+        angle1 = acos(dot(r1,r2) / ( (mag(r1)) * (mag(r2)) ) ) #Calculates the angle between the two position vectors
+        return angle1
+    
+    def area(self, r1, r2, theta):
+        area1 = (r1*r2*theta)/2 #Calculates the area 
+        #print(f"area = {area1}")
+        return area1
 
 class BodyRenderer:
     def __init__(self,mass,radius,colour):
@@ -236,7 +236,7 @@ class Simulation:
     def run(self):
         
         print(self.system.pairs)
-        
+        print(self.monthLength)
         while self.step <= self.maxstep:
             #rate(100) Don't need to limit this as this is running the simulation
             
@@ -283,6 +283,9 @@ class Simulation:
         '''
         
         print(self.bake[0])
+        print(self.bake[:,3])
+        print(self.bake[:,1])
+        print(self.bake[:,-1])
         
         self.energies = signal.resample(self.bake[:,-1],100)
         self.pes = signal.resample(self.bake[:,-2],100)
@@ -292,10 +295,21 @@ class Simulation:
     
     def KeplerForPlanets(self,step):
         areas = np.array([])
-        for i in range(1,self.bodies.size): # The first body is a star soo...
-            areas = np.append(areas,self.Kepler(self.bodies[i],step))
+        for i in range(1,self.nbodies): # The first body is a star soo...
+            areas = np.append(areas,self.Kepler(self.system.bodies[i],step))
+            #print("KEPLER")
         return areas
         
+    def Kepler(self, Planet,step):
+        areatotal = 0
+        monthlength = 100
+        pos1 = Planet.initpos
+        angle2 = Planet.angle(pos1, Planet.pos) #Calls the function to calculate the angle between the vectors
+        areaelement = Planet.area(mag(pos1), mag(Planet.pos),angle2)#Calculates the area between the vectors
+        #lineplanet = curve(vector(Planet.pos), vector(self.Star.pos)) #Draws lines from the star to the planet
+        #pos1 = copy.copy(Planet.pos) #Changes the value of the planet vector
+        areatotal = areatotal + areaelement
+        return areatotal 
         
         #np.savetxt("simulation.csv",self.bake)
         
@@ -370,6 +384,6 @@ BODIES = np.array([STAR,PLANET1,PLANET2])
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
-sim = Simulation(SYSTEM,0.001,20,10000)
+sim = Simulation(SYSTEM,20,0.001,10000)
 sim.run()
 sim.render()
