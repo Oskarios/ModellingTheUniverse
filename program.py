@@ -7,7 +7,7 @@ Created on Mon Feb 17 20:50:34 2020
 
 
 from vpython import * #For rendering
-import numpy as n     #For optimisation
+import numpy as np     #For optimisation
 import matplotlib as mp #For plots
 from scipy import signal #For resampling data to mean
 
@@ -128,8 +128,10 @@ class SolarSystem:
     
     #Only require kinetic energies of planets and not the Sun's? Though its KE should be zero? But efficiency
     def getKineticEnergies(self):
+        #print("Get Kinetic Energies CALLED")
         ke = 0
-        for i in range(1,self.numBodies - 1):
+        for i in range(self.numBodies):
+            #print("i: " + str(i))
             ke += self.bodies[i].getKE()
         return ke
 
@@ -166,18 +168,6 @@ class SolarSystem:
         self.updateVelocities(dvs_arr)
     
     def Euler(self):
-        
-        '''for i in range(self.pairs.shape[0]):
-            self.pairs[i][1].dv += self.calcDV(self.pairs[i][0],self.pairs[i][1])
-            #self.pairs[i][1].pos += self.pairs[i][1].vel * self.dt
-            #dv_arr = np.append(dv_arr,self.calcDV(self.pairs[i][0],self.pairs[i][1]))
-            
-            
-            
-        for i in range(self.bodies.size):
-            self.bodies[i].vel += self.bodies[i].dv * self.dt
-            self.bodies[i].pos += self.pairs[i][1].vel * self.dt'''
-            
         for i in range(self.pairs.shape[0]):
             #For every permutatiuon incrementally update velocity and position of each planet in turn
             self.pairs[i][1].vel += self.calcDV(self.pairs[i][0],self.pairs[i][1])
@@ -219,6 +209,7 @@ class CelestialBody:
     #Returns its own kinetic energy    
     def getKE(self):
         ke = 0.5 * self.mass * mag(self.vel)**2
+        #print(ke)
         return ke
     
     #Returns the potential energy the c-body has with respect to the G field created
@@ -227,10 +218,12 @@ class CelestialBody:
         pe = (self.mass*target.mass)/mag(self.pos - target.pos)
         return pe
     
+    #Returns angle subtended by two subsequent planet positions    
     def angle(self, r1,r2):
         angle1 = acos(dot(r1,r2) / ( (mag(r1)) * (mag(r2)) ) ) #Calculates the angle between the two position vectors
         return angle1
     
+    #Returns the area swept out by planet in 1 arbitrary "month"
     def area(self, r1, r2, theta):
         area1 = (r1*r2*theta)/2 #Calculates the area 
         #print(f"area = {area1}")
@@ -246,101 +239,124 @@ class BodyRenderer:
         self.sphere =  sphere(pos=vector(0,0,0), radius=self.radius*self.mass,color=colour)
         self.trace = curve(radius = 0.0025, color = colour)
         
-<<<<<<< HEAD
+    
     # When called will simultaneously update the posistion of the sphere (vpython) and the trace
-    def updateBody(self,pos):
-=======
     def updateBody(self,pos,area):
->>>>>>> aee7c9ff83df159f7aa30b575ca554a4c0f3fc09
         self.sphere.pos = pos
         self.trace.append(pos)
         if area:
             curve(pos, vector(0,0,0), radius = 0.001)
                 
-
+'''
+The simulation object controls everything relating to a specific simulation
+- Simulation will control the baking of a simulation
+- Simulation will then render said "baked" simulation
+- Pre-determined plots will be created
+'''
 class Simulation:
     def __init__(self,system,monthLength,dt,maxstep):        
-        self.system = system
-        self.monthLength = monthLength
-        self.system.dt = dt
+        self.system = system #Passed will be a numpy array of CelestialBodies
+        self.monthLength = monthLength #Arbitrary length defined for Kepler II
+        self.system.dt = dt #Time step specific to simulation and determined at instantiation
         self.nbodies = self.system.numBodies
         #self.dt = dt
-        self.maxstep = maxstep
-        self.step = 1
+        self.maxstep = maxstep #Determines how long simulation will run for
+        self.step = 1 #Set to 1 instead of zero to make reshaping easier
         
         #we bake a simulation so I call the big array that stores data "bake"
-        self.bake = np.array([])
+        self.bake = np.array([]) #Initialisation of 2D bake that holds time-slices as individual 1D arrays
         
+    '''
+    THE RUN METHOD CONTROLS ALL CALCULATIONS REGARDING INTERACTIONS BETWEEN BODIES
+        - CONSTRUCTS THE BAKED SIMULATION (self.bake)
+    '''
     def run(self):
         
-        print(self.system.pairs)
-        print(self.monthLength)
+        #print(self.system.pairs) - DEBUGGING
+        #print(self.monthLength) - DEBUGGING
         while self.step <= self.maxstep:
             #rate(100) Don't need to limit this as this is running the simulation
             
+            #self.bake will be formed up of many bake-steps -- initialise empty np array for this 
             bakeStep = np.array([])
-            for i in range(self.nbodies):
+            for i in range(self.nbodies): #Add positions of planets for bakestep
                 bakeStep = np.append(bakeStep,self.system.bodies[i].pos)
                 #bakeStep = np.append(bakeStep,)
             
+            #To maintain shape of bakestep create 0 array for areas swept out for nbodies-1 (ignore star)
             areas = np.array([0 for i in range(1,self.nbodies)])
             
+            #Controls whether measurement for Kepler II is made 
             if self.step % self.monthLength == 0:
-                areas = self.KeplerForPlanets(self.step)
+                areas = self.KeplerForPlanets(self.step) #Overides array each "month"
                 
-                            
+            #Adds the areas swept out for each planet to the bake-step                           
             bakeStep = np.append(bakeStep,areas)
             
+            #Calculates the total kinetic energies for the solar system
             ke = self.system.getKineticEnergies()
+            #print(ke)
+            #Calculates the total potential energies for the solar system
             pe = self.system.getPotentialEnergies()
-            
+            #Calculates the total energy of the system
             energy = self.system.getTotalEnergy(ke,pe)
-            
+            #Adds the energies to the bakestep (this array is still 1D)
             bakeStep = np.append(bakeStep,(ke,pe,energy))
             #print(energy)
             
             #print(bakeStep)
             
+            #Uses numpy array methods in order to add bakestep to self.bake as an entire array
+            #self.bake is then a 2D array made up of 'time-slices' of different properties of system
             self.bake = np.reshape(np.append(self.bake,bakeStep),(self.step,2*self.nbodies+2))
             
             
             
-            #Add the new row to the PHAT array 
-            #self.bake = np.vstack((bake,bakeStep))
+         
             
-            
+            #Calculates planetary updates based upon velocity-verlet numerical method
             #self.system.VelocityVerlet()
             
+            #Calculates planetary updates based upon Euler numerical method
             self.system.Euler()
             
+            
+            #Increments steps
             self.step += 1
         '''print("FINAL BAKE")
         print(self.bake)
         print("/FINAL BAKE")
         #print(self.bake[:,-1])
+        PURELY FOR DEBUGGING
         '''
         
+        '''
+        PURELY FOR DEBUGGING AGAIN HERE
         print(self.bake[0])
         print(self.bake[:,3])
         print(self.bake[:,1])
         print(self.bake[:,-1])
+        '''
         
-        self.energies = signal.resample(self.bake[:,-1],100)
-        self.pes = signal.resample(self.bake[:,-2],100)
-        self.kes = signal.resample(self.bake[:, -3],100)
+        #Using array slicing a single parameter (i.e. kinetic energy) can be tracked across the bake (as in through time)
+        #signal.resample used to average out oscillating calculated values -- probably unnecessary tbh
+        self.energies = self.bake[:,-1]
+        self.pes = self.bake[:,-2]
+        self.kes = self.bake[:, -3]
      
         
     
     def KeplerForPlanets(self,step):
-        areas = np.array([])
+        areas = np.array([]) #Empty area of areas to be populated by areas swept by each planet
         for i in range(1,self.nbodies): # The first body is a star soo...
             areas = np.append(areas,self.Kepler(self.system.bodies[i],step))
             #print("KEPLER")
         return areas
         
+    #
     def Kepler(self, Planet,step):
         areatotal = 0
-        monthlength = 100
+        #monthlength = 100
         pos1 = Planet.initpos
         angle2 = Planet.angle(pos1, Planet.pos) #Calls the function to calculate the angle between the vectors
         areaelement = Planet.area(mag(pos1), mag(Planet.pos),angle2)#Calculates the area between the vectors
@@ -357,7 +373,7 @@ class Simulation:
         #iterate through self.bake 
         #i.e.
         
-        '''SOME SHIT LIKE THIS
+        '''SOME stuff LIKE THIS
         for i in range(self.bake.shape[0]):
             sunpos = self.bake[i][0]
             
@@ -388,6 +404,7 @@ class Simulation:
         self.energyPlot(self.pes,"Potential Energy","g")
         self.energyPlot(self.kes,"Kinetic Energy","b")
         '''
+        print(self.kes)
         
         self.plotEnergies()
         self.plotAreas()
@@ -396,7 +413,10 @@ class Simulation:
         for i in range(self.bake.shape[0]):
             rate(100)
             for j in range(renderers.size):
-                renderers[j].updateBody(self.bake[i][j])
+                area = 0
+                if j > 0:
+                    area = self.bake[:,self.nbodies+j][i]
+                renderers[j].updateBody(self.bake[i][j],area)
                 
     def energyPlot(self,energies_raw,label,colour):
         energies = np.reshape(energies_raw,(100,100))
@@ -415,8 +435,10 @@ class Simulation:
         
     def plotAreas(self):
         for i in range(self.nbodies-1):
-            areas = self.bake[:,self.nbodies+i]
-            mp.pyplot.plot(areas,label="Planet " + str(i+1))
+            areas = self.bake[:,self.nbodies+i][0:4000]
+            x = np.nonzero(areas)
+            #np.savetxt("foo"+str(i)+".csv", areas, delimiter=",")
+            mp.pyplot.plot(x[0],areas[x[0]],'o ',label="Planet " + str(i+1), markersize=1)
         mp.pyplot.xlabel("Time (samples)")
         mp.pyplot.ylabel("Area swept out")
         mp.pyplot.legend()
@@ -424,15 +446,16 @@ class Simulation:
         
         
 
-STAR = CelestialBody(1000,vector(0,0,0),vector(0,0,0),0.0001)
-PLANET1 = CelestialBody(1, vector(0,1,0),-vector(25,0,0),0.1)
-PLANET2 = CelestialBody(0.5, vector(0,3,0),-vector(10,0,0),0.1)
-PLANET3 = CelestialBody(0.1, vector(0,4.5,0), -vector(3,0,0),0.1)
+STAR = CelestialBody(1000,vector(0,0,0),vector(0,0,0),0.0001)       #Creates Star
+PLANET1 = CelestialBody(1, vector(0,1,0),-vector(25,0,0),0.1)       #Creates planet
+PLANET2 = CelestialBody(0.5, vector(0,3,0),-vector(10,0,0),0.1)     #Creates planet
+PLANET3 = CelestialBody(0.1, vector(0,4.5,0), -vector(3,0,0),0.1)   #Creates planet
 
-BODIES = np.array([STAR,PLANET1,PLANET2])
-
+#Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
+BODIES = np.array([STAR,PLANET1,PLANET2])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
+
 
 sim = Simulation(SYSTEM,20,0.001,10000)
 sim.run()

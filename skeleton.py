@@ -374,13 +374,7 @@ class Simulation:
         self.plotAreas()
             
         
-        for i in range(self.bake.shape[0]):
-            rate(100)
-            for j in range(renderers.size):
-                area = 0
-                if j > 0:
-                    area = self.bake[:,self.nbodies+j][i]
-                renderers[j].updateBody(self.bake[i][j],area)
+        
                 
                 
 
