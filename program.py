@@ -229,9 +229,11 @@ class BodyRenderer:
         self.sphere =  sphere(pos=vector(0,0,0), radius=self.radius*self.mass,color=colour)
         self.trace = curve(radius = 0.0025, color = colour)
         
-    def updateBody(self,pos):
+    def updateBody(self,pos,area):
         self.sphere.pos = pos
         self.trace.append(pos)
+        if area:
+            curve(pos, vector(0,0,0), radius = 0.001)
                 
 
 class Simulation:
