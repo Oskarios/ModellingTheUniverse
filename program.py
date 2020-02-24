@@ -5,10 +5,11 @@ Created on Mon Feb 17 20:50:34 2020
 @author: Oskar
 """
 
-from vpython import *
-import numpy as np
-import matplotlib as mp
-from scipy import signal
+
+from vpython import * #For rendering
+import numpy as n     #For optimisation
+import matplotlib as mp #For plots
+from scipy import signal #For resampling data to mean
 
 
 '''
@@ -19,12 +20,24 @@ maxstep = 10000
 
 #Pairs are permutation pairs of celestial bodies(including or excluding Sun?)
 #This is difficult because for forces we don't move the sun but still need to consider sun for PE
+
+'''
+A Solar System is a collection of celestial bodies (i.e. a sun and a few planets)
+
+The solar system controls the interactions between all celestial bodies (objects)
+present within it
+
+'''
+
 class SolarSystem:
     def __init__(self,bodies):
         self.bodies = bodies #This will be a numpy array of celestial bodies
-        self.numBodies = bodies.size
-        self.dt = 0
+        self.numBodies = bodies.size # Prevents calling the .size attribute too many times (probably has little impact on performance)
+        self.dt = 0 #Time step for particular solar system -- required for dv calculations (as passed from "parent" simulation)
         #print(permutations())
+        
+        
+        
         #x = np.array([0,1,2,3])
         '''print(bodies.size)
         for i in range(bodies.size):
@@ -37,6 +50,7 @@ class SolarSystem:
         #print(x)
         #self.pairs = np.array(permutations(body_indices,2))
         #print(self.pairs)
+        
         
         ix = np.vstack([x for _ in range(x.shape[0])])
        # print(ix)
