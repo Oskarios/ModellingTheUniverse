@@ -45,14 +45,17 @@ class SolarSystem:
             print(i)'''
         
         
-        x = self.bodies
+        x = self.bodies # Found some code -- easier if array is x
         
         #print(x)
         #self.pairs = np.array(permutations(body_indices,2))
         #print(self.pairs)
-        
-        
-        ix = np.vstack([x for _ in range(x.shape[0])])
+
+
+        '''
+            The next few lines calculate the permutation pairs (2d array) of c-bodies
+        '''        
+        ix = np.vstack([x for _ in range(x.shape[0])]) 
        # print(ix)
         #print(np.vstack(np.vstack(([ix],[ix.T])).T))
         '''
@@ -70,7 +73,8 @@ class SolarSystem:
         #print("PAIRS")
         #print(self.pairs)
         
-        self.correctPairs()
+        
+        self.correctPairs()     # Remove Sun-dependent pairs
         
         #print("CORRECTED PAIRS")
         #print(self.pairs.shape)
@@ -94,6 +98,7 @@ class SolarSystem:
         toDelete = []
         for i in range(self.pairs.shape[0]):
             if self.pairs[i][1] == self.bodies[0] or self.pairs[i][0] == self.pairs[i][1]:
+                # Will delete a pair if it represents interaction between something and itself, or the influence of a planet on the sun
                 toDelete.append(i)
         self.pairs = np.delete(self.pairs,toDelete,0)
     
@@ -112,9 +117,12 @@ class SolarSystem:
         print("Unique Pairs")
         print(self.pairs)
         
-    '''        
+    '''     
+    
+    #Calculates a*dt (dv) based on Newton's Law of Gravitation
     def calcDV(self, fieldBody, body):
         denom = mag(body.pos - fieldBody.pos) ** 3
+        # -1 used instead of -G (G normalised as 1 in this model)
         dv = -1 * self.dt * body.pos * fieldBody.mass / denom
         return dv
     
@@ -132,10 +140,12 @@ class SolarSystem:
             pe -= self.pairs[i][1].getPE(self.pairs[i][0])
         return pe
     
+    #Sums total energy of system
     def getTotalEnergy(self,ke,pe):
         E = ke + pe
         return E
     
+    #For velocity verlet method need to track both dv_i and dv_i+1
     def getDvArr(self):
         dv_arr = np.array([])
         for i in range(self.pairs.shape[0]):
@@ -169,11 +179,11 @@ class SolarSystem:
             self.bodies[i].pos += self.pairs[i][1].vel * self.dt'''
             
         for i in range(self.pairs.shape[0]):
-            
+            #For every permutatiuon incrementally update velocity and position of each planet in turn
             self.pairs[i][1].vel += self.calcDV(self.pairs[i][0],self.pairs[i][1])
             self.pairs[i][1].pos += self.pairs[i][1].vel * self.dt     
         
-    
+    #Updates posistion for all planets when using velocity verlet method
     def updatePositions(self,dv_arr):
         #print("ATTEMPTING POSITION UPDATE")
         #print(self.pairs.shape)
@@ -181,6 +191,7 @@ class SolarSystem:
         for i in range(self.pairs.shape[0]):
             self.pairs[i][1].pos += self.pairs[i][1].vel*self.dt + 0.5 * dv_arr[i] * self.dt
     
+    #Updates velocities of all planets when using velocity verlet method
     def updateVelocities(self,dvs_arr):
         for i in range(self.pairs.shape[0]):
             self.pairs[i][1].vel += 0.5 * (dvs_arr[i][0] + dvs_arr[i][1])
@@ -190,25 +201,28 @@ class SolarSystem:
         
 
                 
-        
+'''
+    Stars,planets,moons etc. would all be celestial bodies in this case
+'''        
 class CelestialBody:
     def __init__(self, mass, pos, vel, radius):
         self.mass = mass
         self.initpos = pos
         self.pos = pos
         self.vel = vel
-        self.temppos = self.pos
-        self.tempvel = self.vel
         self.radius = radius
         
-    
+    #Updates its own position for use using Euler Methodology (I think? might be unused)
     def updatePos(self, dt):
         self.pos = self.pos + self.vel * dt
-        
+    
+    #Returns its own kinetic energy    
     def getKE(self):
         ke = 0.5 * self.mass * mag(self.vel)**2
         return ke
     
+    #Returns the potential energy the c-body has with respect to the G field created
+    #by the target body (target body creates field)
     def getPE(self, target):
         pe = (self.mass*target.mass)/mag(self.pos - target.pos)
         return pe
@@ -222,13 +236,17 @@ class CelestialBody:
         #print(f"area = {area1}")
         return area1
 
+'''
+Body Renderer objects are used when rendering the pre-baked simulation
+'''
 class BodyRenderer:
     def __init__(self,mass,radius,colour):
-        self.mass = mass
+        self.mass = mass # Here mass is only used to scale the visible radius of the rendered sphere
         self.radius = radius
         self.sphere =  sphere(pos=vector(0,0,0), radius=self.radius*self.mass,color=colour)
         self.trace = curve(radius = 0.0025, color = colour)
         
+    # When called will simultaneously update the posistion of the sphere (vpython) and the trace
     def updateBody(self,pos):
         self.sphere.pos = pos
         self.trace.append(pos)
