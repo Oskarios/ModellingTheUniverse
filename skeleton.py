@@ -199,58 +199,7 @@ class SolarSystem:
         lineplanet = curve(vector(Planet.pos), vector(self.Star.pos)) #Draws lines from the star to the planet
         pos1 = copy.copy(Planet.pos) #Changes the value of the planet vector
         areatotal = areatotal + areaelement
-<<<<<<< HEAD
-        return areatotal 
-        
-        #np.savetxt("simulation.csv",self.bake)
-        
-    def render(self):
-        #this renders the whole baked simulation in vpython
-        
-        #iterate through self.bake 
-        #i.e.
-        
-        '''SOME SHIT LIKE THIS
-        for i in range(self.bake.shape[0]):
-            sunpos = self.bake[i][0]
-            
-        '''
-        
-        
-        renderers = np.array([])
-        for i in range(self.nbodies):
-            renderers = np.append(renderers,BodyRenderer(self.system.bodies[i].mass,self.system.bodies[i].radius,color.white))
-        '''
-        print(renderers)
-        
-        '''
-        
-        #self.energies = np.reshape(self.energies,(100,100))
-        
-        #Evals = np.mean(self.energies,axis=1)
-        
-        #Eerror = np.std(self.energies,axis=1,dtype=np.float64)/np.sqrt(self.energies.shape[1])
-        #print(Evals)
-       # print(Eerror)
-        #mp.pyplot.errorbar(np.array([i*100 for i in range(Evals.size)]),Evals,Eerror,label="Total Energy",color='r',ls='-', marker='x',capsize=5,capthick=1,ecolor='r')
-        
-        
-        
-        
-        '''
-        self.energyPlot(self.energies,"Total Energy","r")
-        self.energyPlot(self.pes,"Potential Energy","g")
-        self.energyPlot(self.kes,"Kinetic Energy","b")
-        '''
-        
-        self.plotEnergies()
-        self.plotAreas()
-            
-        
-        
-                
-=======
->>>>>>> parent of 72ecb06... Kepler ticks have been implemented
+
                 
             
 
