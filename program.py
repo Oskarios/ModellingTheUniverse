@@ -246,10 +246,16 @@ class BodyRenderer:
         self.sphere =  sphere(pos=vector(0,0,0), radius=self.radius*self.mass,color=colour)
         self.trace = curve(radius = 0.0025, color = colour)
         
+<<<<<<< HEAD
     # When called will simultaneously update the posistion of the sphere (vpython) and the trace
     def updateBody(self,pos):
+=======
+    def updateBody(self,pos,area):
+>>>>>>> aee7c9ff83df159f7aa30b575ca554a4c0f3fc09
         self.sphere.pos = pos
         self.trace.append(pos)
+        if area:
+            curve(pos, vector(0,0,0), radius = 0.001)
                 
 
 class Simulation:
