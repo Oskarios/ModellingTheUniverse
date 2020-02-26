@@ -11,6 +11,7 @@ import numpy as np     #For optimisation
 import matplotlib as mp #For plots
 from scipy import signal #For resampling data to mean
 
+
 #Increase the pixel density of figures created
 mp.rcParams['figure.dpi'] = 300
 
@@ -197,12 +198,14 @@ class SolarSystem:
     Stars,planets,moons etc. would all be celestial bodies in this case
 '''        
 class CelestialBody:
-    def __init__(self, mass, pos, vel, radius):
+    def __init__(self, mass, pos, vel, radius,name,colour):
         self.mass = mass
         self.initpos = pos
         self.pos = pos
         self.vel = vel
         self.radius = radius
+        self.name = name
+        self.colour = colour
         
     #Updates its own position for use using Euler Methodology (I think? might be unused)
     def updatePos(self, dt):
@@ -273,7 +276,7 @@ class Simulation:
         - CONSTRUCTS THE BAKED SIMULATION (self.bake)
     '''
     def run(self):
-        
+        print("SIMULATION INITIALISED...")
         #print(self.system.pairs) - DEBUGGING
         #print(self.monthLength) - DEBUGGING
         while self.step <= self.maxstep:
@@ -332,6 +335,8 @@ class Simulation:
         PURELY FOR DEBUGGING
         '''
         
+        print("SIMULATION BAKED -- PREPARING TO RENDER...")
+        
         '''
         PURELY FOR DEBUGGING AGAIN HERE
         print(self.bake[0])
@@ -383,7 +388,7 @@ class Simulation:
         
         renderers = np.array([])
         for i in range(self.nbodies):
-            renderers = np.append(renderers,BodyRenderer(self.system.bodies[i].mass,self.system.bodies[i].radius,color.white))
+            renderers = np.append(renderers,BodyRenderer(self.system.bodies[i].mass,self.system.bodies[i].radius,self.system.bodies[i].colour))
         '''
         print(renderers)
         
@@ -397,19 +402,19 @@ class Simulation:
         #print(Evals)
        # print(Eerror)
         #mp.pyplot.errorbar(np.array([i*100 for i in range(Evals.size)]),Evals,Eerror,label="Total Energy",color='r',ls='-', marker='x',capsize=5,capthick=1,ecolor='r')
-        '''
-        relposition=np.subtract(self.bake[:,2],self.bake[:,1])[0:4000] # distance between planet one and planet two
-        posrelsun2= np.subtract(self.bake[:,2], self.bake[:,0])[0:4000] # distance of planet 2 away from the sun
-        posrelsun1= np.subtract(self.bake[:,1], self.bake[:,0])[0:4000] # distance between planet 1 and the sun
-        print(relposition)
-
+        
+        relposition=np.subtract(self.bake[:,2],self.bake[:,1])  # distance between planet one and planet two
+        posrelsun2= np.subtract(self.bake[:,2], self.bake[:,0]) # distance of planet 2 away from the sun
+        posrelsun1= np.subtract(self.bake[:,1], self.bake[:,0]) # distance between planet 1 and the sun
+        #print(relposition)
+        
         relx = np.array([])
         rely = np.array([])
         for i in range(relposition.size):               # a graph is created to plot the magnitude of the distance between the two planets
             relx = np.append(relx,relposition[i].x)     # calculates the relative x displacement
             rely = np.append(rely,relposition[i].y)     # calculated the relative y displacement 
             c= np.sqrt((rely)**2+(relx)**2)             # calculates the magnitude of the displacement
-        print("Subtract worked")
+        #print("Subtract worked")
         mp.pyplot.xlabel("Time[samples]")
         mp.pyplot.ylabel ("Displacement")
         mp.pyplot.plot(c)                               # graph is plotted
@@ -434,9 +439,9 @@ class Simulation:
             d= np.sqrt((rely)**2+(relx)**2)
         mp.pyplot.xlabel("Time[samples]")
         mp.pyplot.ylabel ("Displacement")
-        mp.pyplot.plot()
+        mp.pyplot.plot(d)
         mp.pyplot.show()
-        '''
+        
         
         
         '''
@@ -444,11 +449,44 @@ class Simulation:
         self.energyPlot(self.pes,"Potential Energy","g")
         self.energyPlot(self.kes,"Kinetic Energy","b")
         '''
-        print(self.kes)
+        #print(self.kes)
         
         self.plotEnergies()
         self.plotAreas()
-            
+        
+        avgKE = np.mean(self.kes)
+        KE_error = self.getError(self.kes)
+        avgPE = np.mean(self.pes)
+        PE_error = self.getError(self.pes)
+        avgE  = np.mean(self.energies)
+        E_error = self.getError(self.energies)
+        areas_avg = np.array([])
+        for i in range(self.nbodies-1):
+            areas = self.bake[:,self.nbodies+i]
+            avg = np.mean(areas)
+            errors = self.getError(areas)
+            areas_avg = np.append(areas_avg,np.reshape(np.append(avg,errors),(1,2)))
+            areas_avg = np.reshape(areas_avg,(i+1,2))
+        '''    
+        print(areas_avg)
+        
+        print(avgKE,KE_error)
+        print(avgPE)
+        print(avgE)
+        '''
+        
+        line = "-"*64
+        
+        print("\n")
+        print(line)
+        print("|Quantity\t|Value\t\t\t|Error\t\t\t|")
+        print(line)
+        print("|Total Energy\t|"+str(avgE)+"\t|"+str(E_error)+"\t|")
+        print("|Kinetic Energy\t|"+str(avgKE)+"\t|"+str(KE_error)+"\t|")
+        print("|Pot. Energy\t|"+str(avgPE)+"\t|"+str(PE_error)+"\t|")
+        for i in range(areas_avg.shape[0]):
+            print("|Area - "+self.system.bodies[i+1].name + "\t|"+str(areas_avg[i][0])+"\t|"+str(areas_avg[i][1])+"\t|")
+        print(line)
         
         for i in range(self.bake.shape[0]):
             rate(100)
@@ -457,6 +495,13 @@ class Simulation:
                 if j > 0:
                     area = self.bake[:,self.nbodies+j][i]
                 renderers[j].updateBody(self.bake[i][j],area)
+         
+        print("\n")
+        print("SIMULATION COMPLETE")
+        
+    def getError(self,raw):
+        error = np.std(raw)/np.sqrt(raw.size)
+        return error
                 
     def energyPlot(self,energies_raw,label,colour):
         energies = np.reshape(energies_raw,(100,100))
@@ -475,10 +520,10 @@ class Simulation:
         
     def plotAreas(self):
         for i in range(self.nbodies-1):
-            areas = self.bake[:,self.nbodies+i][0:4000]
+            areas = self.bake[:,self.nbodies+i]
             x = np.nonzero(areas)
             #np.savetxt("foo"+str(i)+".csv", areas, delimiter=",")
-            mp.pyplot.plot(x[0],areas[x[0]],'o',label="Planet " + str(i+1), markersize=1)
+            mp.pyplot.plot(x[0],areas[x[0]],'o',label=self.system.bodies[i+1].name, markersize=1)
         mp.pyplot.xlabel("Time (samples)")
         mp.pyplot.ylabel("Area swept out")
         mp.pyplot.legend()
@@ -486,7 +531,7 @@ class Simulation:
         
         
 #Creates the Sun -- Mass set to be 330 000 EARTH MASSES
-STAR = CelestialBody(330000,vector(0,0,0),vector(0,0,0),0.1)       #Creates Star
+STAR = CelestialBody(330000,vector(0,0,0),vector(0,0,0),0.1,"Sun",color.yellow)       #Creates Star
 '''
 INITIAL CONDITIONS WITH G NORMALISED AS 1 AND HONESTLY IT NEVER WORKED
 
@@ -507,17 +552,19 @@ Now let's take some inspo from our Solar System
 
 '''
 
-MERCURY = CelestialBody(0.055,vector(0,0.3606,0),-vector(10.02,0,0),0.06)
-VENUS = CelestialBody(0.815,vector(0,7.28,0),-vector(7.388,0,0),0.06)
-EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.06)
+MERCURY = CelestialBody(0.055,vector(0,0.3606,0),-vector(10.02,0,0),0.06,"Mercury",color.green)
+VENUS = CelestialBody(0.815,vector(0,0.728,0),-vector(7.388,0,0),0.06,"Venus",color.yellow)
+EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.06,"Earth",color.blue)
 #MARS = CelestialBody(0.107,vector(0,9.55,0),-vector(5.082,0,0),0.04)
 #JUPITER = CelestialBody(317.8,vector(0,5.207,0),-vector(2.754,0,0),0.09)
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
-BODIES = np.array([STAR,EARTH,VENUS,MERCURY])#Creates solar system made up of celestial bodies found in np.array -- BODIES
+BODIES = np.array([STAR,MERCURY,EARTH])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
-
+#Creates simulation with month length of 20 steps, dt = 0.001, and 10000 maxsteps
 sim = Simulation(SYSTEM,20,0.001,10000)
+#Runs/bakes simulation
 sim.run()
+#Renders simulation using vpython and plots all graphs
 sim.render()
