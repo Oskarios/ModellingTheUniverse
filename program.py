@@ -11,6 +11,8 @@ import numpy as np     #For optimisation
 import matplotlib as mp #For plots
 from scipy import signal #For resampling data to mean
 
+#Increase the pixel density of figures created
+mp.rcParams['figure.dpi'] = 300
 
 '''
 dt = 0.001
@@ -476,7 +478,7 @@ class Simulation:
             areas = self.bake[:,self.nbodies+i][0:4000]
             x = np.nonzero(areas)
             #np.savetxt("foo"+str(i)+".csv", areas, delimiter=",")
-            mp.pyplot.plot(x[0],areas[x[0]],'o ',label="Planet " + str(i+1), markersize=1)
+            mp.pyplot.plot(x[0],areas[x[0]],'o',label="Planet " + str(i+1), markersize=1)
         mp.pyplot.xlabel("Time (samples)")
         mp.pyplot.ylabel("Area swept out")
         mp.pyplot.legend()
