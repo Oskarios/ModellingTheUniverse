@@ -396,6 +396,44 @@ class Simulation:
        # print(Eerror)
         #mp.pyplot.errorbar(np.array([i*100 for i in range(Evals.size)]),Evals,Eerror,label="Total Energy",color='r',ls='-', marker='x',capsize=5,capthick=1,ecolor='r')
         
+        relposition=np.subtract(self.bake[:,2],self.bake[:,1])[0:4000] # distance between planet one and planet two
+        posrelsun2= np.subtract(self.bake[:,2], self.bake[:,0])[0:4000] # distance of planet 2 away from the sun
+        posrelsun1= np.subtract(self.bake[:,1], self.bake[:,0])[0:4000] # distance between planet 1 and the sun
+        print(relposition)
+
+        relx = np.array([])
+        rely = np.array([])
+        for i in range(relposition.size):               # a graph is created to plot the magnitude of the distance between the two planets
+            relx = np.append(relx,relposition[i].x)     # calculates the relative x displacement
+            rely = np.append(rely,relposition[i].y)     # calculated the relative y displacement 
+            c= np.sqrt((rely)**2+(relx)**2)             # calculates the magnitude of the displacement
+        print("Subtract worked")
+        mp.pyplot.xlabel("Time[samples]")
+        mp.pyplot.ylabel ("Displacement")
+        mp.pyplot.plot(c)                               # graph is plotted
+        mp.pyplot.show()
+        
+        relx = np.array([])
+        rely = np.array([])
+        for i in range(posrelsun2.size):                # the same is repeated between planet 2 and the sun
+            relx=np.append(relx,posrelsun2[i].x)
+            rely=np.append(rely,posrelsun2[i].y)
+            d= np.sqrt((rely)**2+(relx)**2)
+        mp.pyplot.xlabel("Time[samples]")
+        mp.pyplot.ylabel ("Displacement")
+        mp.pyplot.plot(d)
+        mp.pyplot.show()
+        
+        relx = np.array([])
+        rely = np.array([])
+        for i in range(posrelsun1.size):                # the same is reppeated between planet 1 and the sun 
+            relx=np.append(relx,posrelsun1[i].x)
+            rely=np.append(rely,posrelsun1[i].y)
+            d= np.sqrt((rely)**2+(relx)**2)
+        mp.pyplot.xlabel("Time[samples]")
+        mp.pyplot.ylabel ("Displacement")
+        mp.pyplot.plot(d)
+        mp.pyplot.show()
         
         
         
