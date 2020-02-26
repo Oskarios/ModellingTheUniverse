@@ -141,7 +141,7 @@ class SolarSystem:
     def getPotentialEnergies(self):
         pe = 0
         for i in range(self.pairs.shape[0]):
-            pe -= self.pairs[i][1].getPE(self.pairs[i][0])
+            pe -= self.pairs[i][1].getPE(self.pairs[i][0],self.G)
         return pe
     
     #Sums total energy of system
@@ -216,8 +216,8 @@ class CelestialBody:
     
     #Returns the potential energy the c-body has with respect to the G field created
     #by the target body (target body creates field)
-    def getPE(self, target):
-        pe = (self.mass*target.mass)/mag(self.pos - target.pos)
+    def getPE(self, target,G):
+        pe = (G*self.mass*target.mass)/mag(self.pos - target.pos)
         return pe
     
     #Returns angle subtended by two subsequent planet positions    
@@ -317,10 +317,10 @@ class Simulation:
          
             
             #Calculates planetary updates based upon velocity-verlet numerical method
-            self.system.VelocityVerlet()
+            #self.system.VelocityVerlet()
             
             #Calculates planetary updates based upon Euler numerical method
-            #self.system.Euler()
+            self.system.Euler()
             
             
             #Increments steps
@@ -397,7 +397,7 @@ class Simulation:
         #print(Evals)
        # print(Eerror)
         #mp.pyplot.errorbar(np.array([i*100 for i in range(Evals.size)]),Evals,Eerror,label="Total Energy",color='r',ls='-', marker='x',capsize=5,capthick=1,ecolor='r')
-        
+        '''
         relposition=np.subtract(self.bake[:,2],self.bake[:,1])[0:4000] # distance between planet one and planet two
         posrelsun2= np.subtract(self.bake[:,2], self.bake[:,0])[0:4000] # distance of planet 2 away from the sun
         posrelsun1= np.subtract(self.bake[:,1], self.bake[:,0])[0:4000] # distance between planet 1 and the sun
@@ -434,9 +434,9 @@ class Simulation:
             d= np.sqrt((rely)**2+(relx)**2)
         mp.pyplot.xlabel("Time[samples]")
         mp.pyplot.ylabel ("Displacement")
-        mp.pyplot.plot(d)
+        mp.pyplot.plot()
         mp.pyplot.show()
-        
+        '''
         
         
         '''
@@ -488,11 +488,11 @@ class Simulation:
 
 STAR = CelestialBody(0.75,vector(0,0,0),vector(0,0,0),0.4)       #Creates Star
 PLANET1 = CelestialBody(3e-6, vector(0,1,0),-vector(2*np.pi,0,0),0.06)       #Creates planet
-PLANET2 = CelestialBody(0.5, vector(0,3,0),-vector(10,0,0),0.1)     #Creates planet
+PLANET2 = CelestialBody(4e-8, vector(0,-50,0),-vector(0.5,0,0),0.1)     #Creates planet
 PLANET3 = CelestialBody(0.1, vector(0,4.5,0), -vector(3,0,0),0.1)   #Creates planet
 
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
-BODIES = np.array([STAR,PLANET1])#Creates solar system made up of celestial bodies found in np.array -- BODIES
+BODIES = np.array([STAR,PLANET1,PLANET2])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
