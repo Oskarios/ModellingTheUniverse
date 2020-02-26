@@ -37,7 +37,7 @@ class SolarSystem:
         self.numBodies = bodies.size # Prevents calling the .size attribute too many times (probably has little impact on performance)
         self.dt = 0 #Time step for particular solar system -- required for dv calculations (as passed from "parent" simulation)
         #print(permutations())
-        self.G = 4*(np.pi)**2 #Value of G, assuming radius is 1AU, time is 1 year, and the mass of the planet is 1
+        self.G = 1.6233e-4 #Value of G, assuming radius is 1AU, time is 1 year, and the mass of the planet is 1
         
         
         #x = np.array([0,1,2,3])
@@ -246,8 +246,8 @@ class BodyRenderer:
     def updateBody(self,pos,area):
         self.sphere.pos = pos
         self.trace.append(pos)
-        if area:
-            curve(pos, vector(0,0,0), radius = 0.001)
+        #if area:
+            #curve(pos, vector(0,0,0), radius = 0.001)
                 
 '''
 The simulation object controls everything relating to a specific simulation
@@ -485,14 +485,35 @@ class Simulation:
         mp.pyplot.show()
         
         
+#Creates the Sun -- Mass set to be 330 000 EARTH MASSES
+STAR = CelestialBody(330000,vector(0,0,0),vector(0,0,0),0.1)       #Creates Star
+'''
+INITIAL CONDITIONS WITH G NORMALISED AS 1 AND HONESTLY IT NEVER WORKED
 
-STAR = CelestialBody(0.75,vector(0,0,0),vector(0,0,0),0.4)       #Creates Star
-PLANET1 = CelestialBody(3e-6, vector(0,1,0),-vector(2*np.pi,0,0),0.06)       #Creates planet
-PLANET2 = CelestialBody(4e-8, vector(0,-50,0),-vector(0.5,0,0),0.1)     #Creates planet
+PLANET1 = CelestialBody(1, vector(0,3,0),-vector(250,0,0),0.06)       #Creates planet
+PLANET2 = CelestialBody(0.05, vector(0,10,0),-vector(15,0,0),0.1)     #Creates planet
 PLANET3 = CelestialBody(0.1, vector(0,4.5,0), -vector(3,0,0),0.1)   #Creates planet
+'''
 
+'''
+Now let's take some inspo from our Solar System 
+    - Planets commented out if they broke the simulation
+    - Can't seem to get more than two planets to be stable
+    - I don't know what's going on at this point
+    
+    Source for Mass: https://www.google.com/search?q=earth+mass+of+solar+system+planets&rlz=1C1CHBF_enGB885GB885&oq=earth+mass+of+solar+system+planets&aqs=chrome..69i57j33l6.5418j1j7&sourceid=chrome&ie=UTF-8
+    Source for Speeds: https://www.google.com/search?q=earth+mass+of+solar+system+planets&rlz=1C1CHBF_enGB885GB885&oq=earth+mass+of+solar+system+planets&aqs=chrome..69i57j33l6.5418j1j7&sourceid=chrome&ie=UTF-8
+    Source for Orbits: https://www.wolframalpha.com/
+
+'''
+
+MERCURY = CelestialBody(0.055,vector(0,0.3606,0),-vector(10.02,0,0),0.06)
+VENUS = CelestialBody(0.815,vector(0,7.28,0),-vector(7.388,0,0),0.06)
+EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.06)
+#MARS = CelestialBody(0.107,vector(0,9.55,0),-vector(5.082,0,0),0.04)
+#JUPITER = CelestialBody(317.8,vector(0,5.207,0),-vector(2.754,0,0),0.09)
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
-BODIES = np.array([STAR,PLANET1,PLANET2])#Creates solar system made up of celestial bodies found in np.array -- BODIES
+BODIES = np.array([STAR,EARTH,VENUS,MERCURY])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
