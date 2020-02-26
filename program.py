@@ -9,7 +9,8 @@ Created on Mon Feb 17 20:50:34 2020
 from vpython import * #For rendering
 import numpy as np     #For optimisation
 import matplotlib as mp #For plots
-from scipy import signal #For resampling data to mean
+import matplotlib.pyplot as p
+#from scipy import signal #For resampling data to mean -- NO LONGER USING RESAMPLING
 
 
 #Increase the pixel density of figures created
@@ -401,7 +402,7 @@ class Simulation:
         #Eerror = np.std(self.energies,axis=1,dtype=np.float64)/np.sqrt(self.energies.shape[1])
         #print(Evals)
        # print(Eerror)
-        #mp.pyplot.errorbar(np.array([i*100 for i in range(Evals.size)]),Evals,Eerror,label="Total Energy",color='r',ls='-', marker='x',capsize=5,capthick=1,ecolor='r')
+        #p.errorbar(np.array([i*100 for i in range(Evals.size)]),Evals,Eerror,label="Total Energy",color='r',ls='-', marker='x',capsize=5,capthick=1,ecolor='r')
         
         relposition=np.subtract(self.bake[:,2],self.bake[:,1])  # distance between planet one and planet two
         posrelsun2= np.subtract(self.bake[:,2], self.bake[:,0]) # distance of planet 2 away from the sun
@@ -415,10 +416,10 @@ class Simulation:
             rely = np.append(rely,relposition[i].y)     # calculated the relative y displacement 
             c= np.sqrt((rely)**2+(relx)**2)             # calculates the magnitude of the displacement
         #print("Subtract worked")
-        mp.pyplot.xlabel("Time[samples]")
-        mp.pyplot.ylabel ("Displacement")
-        mp.pyplot.plot(c)                               # graph is plotted
-        mp.pyplot.show()
+        p.xlabel("Time[samples]")
+        p.ylabel ("Displacement")
+        p.plot(c)                               # graph is plotted
+        p.show()
         
         relx = np.array([])
         rely = np.array([])
@@ -426,10 +427,10 @@ class Simulation:
             relx=np.append(relx,posrelsun2[i].x)
             rely=np.append(rely,posrelsun2[i].y)
             d= np.sqrt((rely)**2+(relx)**2)
-        mp.pyplot.xlabel("Time[samples]")
-        mp.pyplot.ylabel ("Displacement")
-        mp.pyplot.plot(d)
-        mp.pyplot.show()
+        p.xlabel("Time[samples]")
+        p.ylabel ("Displacement")
+        p.plot(d)
+        p.show()
         
         relx = np.array([])
         rely = np.array([])
@@ -437,10 +438,10 @@ class Simulation:
             relx=np.append(relx,posrelsun1[i].x)
             rely=np.append(rely,posrelsun1[i].y)
             d= np.sqrt((rely)**2+(relx)**2)
-        mp.pyplot.xlabel("Time[samples]")
-        mp.pyplot.ylabel ("Displacement")
-        mp.pyplot.plot(d)
-        mp.pyplot.show()
+        p.xlabel("Time[samples]")
+        p.ylabel ("Displacement")
+        p.plot(d)
+        p.show()
         
         
         
@@ -475,17 +476,19 @@ class Simulation:
         print(avgE)
         '''
         
-        line = "-"*64
+        line = "+"+"-"*87+"+"
+        energyUnits = "|M(Earth)Au^2y^-2\t|"
+        areaUnits = "|Au^2\t\t\t|"
         
         print("\n")
         print(line)
-        print("|Quantity\t|Value\t\t\t|Error\t\t\t|")
+        print("|Quantity\t|Value\t\t\t|Error\t\t\t|Units\t\t\t|")
         print(line)
-        print("|Total Energy\t|"+str(avgE)+"\t|"+str(E_error)+"\t|")
-        print("|Kinetic Energy\t|"+str(avgKE)+"\t|"+str(KE_error)+"\t|")
-        print("|Pot. Energy\t|"+str(avgPE)+"\t|"+str(PE_error)+"\t|")
+        print("|Total Energy\t|"+str(avgE)+"\t|"+str(E_error)+"\t"+energyUnits)
+        print("|Kinetic Energy\t|"+str(avgKE)+"\t|"+str(KE_error)+"\t"+energyUnits)
+        print("|Pot. Energy\t|"+str(avgPE)+"\t|"+str(PE_error)+"\t"+energyUnits)
         for i in range(areas_avg.shape[0]):
-            print("|Area - "+self.system.bodies[i+1].name + "\t|"+str(areas_avg[i][0])+"\t|"+str(areas_avg[i][1])+"\t|")
+            print("|Area - "+self.system.bodies[i+1].name + "\t|"+str(areas_avg[i][0])+"\t|"+str(areas_avg[i][1])+"\t"+areaUnits)
         print(line)
         
         for i in range(self.bake.shape[0]):
@@ -507,27 +510,27 @@ class Simulation:
         energies = np.reshape(energies_raw,(100,100))
         values = np.mean(energies,axis=1)
         errors = np.std(energies,axis=1,dtype=np.float64)/np.sqrt(energies.shape[1])
-        mp.pyplot.errorbar(np.array([i*100 for i in range(values.size)]),values,errors,label=label,color=colour,ls='-', marker='x',capsize=5,capthick=1,ecolor=colour)
+        p.errorbar(np.array([i*100 for i in range(values.size)]),values,errors,label=label,color=colour,ls='-', marker='x',capsize=5,capthick=1,ecolor=colour)
         
     def plotEnergies(self):
-        mp.pyplot.plot(self.energies,'r',label="Total Energy")
-        mp.pyplot.plot(self.pes,'g',label="Potential Energy")
-        mp.pyplot.plot(self.kes,'b',label="Kinetic Energy")
-        mp.pyplot.xlabel("Time (samples)")
-        mp.pyplot.ylabel("Energy")
-        mp.pyplot.legend()
-        mp.pyplot.show()
+        p.plot(self.energies,'r',label="Total Energy")
+        p.plot(self.pes,'g',label="Potential Energy")
+        p.plot(self.kes,'b',label="Kinetic Energy")
+        p.xlabel("Time (samples)")
+        p.ylabel("Energy")
+        p.legend()
+        p.show()
         
     def plotAreas(self):
         for i in range(self.nbodies-1):
             areas = self.bake[:,self.nbodies+i]
             x = np.nonzero(areas)
             #np.savetxt("foo"+str(i)+".csv", areas, delimiter=",")
-            mp.pyplot.plot(x[0],areas[x[0]],'o',label=self.system.bodies[i+1].name, markersize=1)
-        mp.pyplot.xlabel("Time (samples)")
-        mp.pyplot.ylabel("Area swept out")
-        mp.pyplot.legend()
-        mp.pyplot.show()
+            p.plot(x[0],areas[x[0]],'o',label=self.system.bodies[i+1].name, markersize=1)
+        p.xlabel("Time (samples)")
+        p.ylabel("Area swept out")
+        p.legend()
+        p.show()
         
         
 #Creates the Sun -- Mass set to be 330 000 EARTH MASSES
