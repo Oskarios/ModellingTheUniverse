@@ -167,10 +167,17 @@ class SolarSystem:
                 
                     vel += dv
                     vels.append(vel)
+<<<<<<< HEAD
             
             
         self.updatePlanetPositions()
             
+=======
+            
+            
+        self.updatePlanetPositions()
+            
+>>>>>>> parent of 72ecb06... Kepler ticks have been implemented
         for i in range(len(self.planets)):
             self.planets[i].vel = vels[i]
 
@@ -199,6 +206,7 @@ class SolarSystem:
         lineplanet = curve(vector(Planet.pos), vector(self.Star.pos)) #Draws lines from the star to the planet
         pos1 = copy.copy(Planet.pos) #Changes the value of the planet vector
         areatotal = areatotal + areaelement
+<<<<<<< HEAD
 
                 
             
@@ -238,6 +246,46 @@ while step <= maxstep:
 
     #Instead of just printing energy need to plot it
 
+=======
+                
+            
+
+#  Define the star, planets and constants
+M = 1000 # mass of star (G == 1)
+#Star = sphere(pos=vector(0,0,0),radius=0.1,color=color.yellow)
+
+Star = Star(M, vector(0,0,0), radius=0.1)
+monthlength = 20
+system = SolarSystem(Star,[])
+energyPlot = []
+while step <= maxstep:
+
+    rate(100)  # slow down the animation
+    #print (Planet1.pos)
+
+    #Calculate Changes in velocities
+    system.getForces_IP()
+    
+    if step%monthlength == 0 and step !=0:
+        areas = system.KeplerForPlanets()
+    else:
+        areas = np.array([0 for i in range(1,self.nbodies)])
+
+    #Update Velocities
+    system.updatePlanetVelocities()
+
+    #Update Positions
+    system.updatePlanetPositions()   
+    
+    #system.updatePos_EulerCromer()
+
+    #Push total energy
+    energy = system.getTotalEnergy(system.getKineticEnergies(),system.getPotentialEnergies())
+    #print(energy)
+
+    #Instead of just printing energy need to plot it
+
+>>>>>>> parent of 72ecb06... Kepler ticks have been implemented
     #Average a reading over 1 or 2 seconds?
     
     step += 1
