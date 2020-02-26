@@ -505,13 +505,15 @@ class Simulation:
     def getError(self,raw):
         error = np.std(raw)/np.sqrt(raw.size)
         return error
-                
+    
+    '''
     def energyPlot(self,energies_raw,label,colour):
         energies = np.reshape(energies_raw,(100,100))
         values = np.mean(energies,axis=1)
         errors = np.std(energies,axis=1,dtype=np.float64)/np.sqrt(energies.shape[1])
         p.errorbar(np.array([i*100 for i in range(values.size)]),values,errors,label=label,color=colour,ls='-', marker='x',capsize=5,capthick=1,ecolor=colour)
-        
+    '''
+    
     def plotEnergies(self):
         p.plot(self.energies,'r',label="Total Energy")
         p.plot(self.pes,'g',label="Potential Energy")
