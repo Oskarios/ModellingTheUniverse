@@ -37,7 +37,7 @@ class SolarSystem:
         self.numBodies = bodies.size # Prevents calling the .size attribute too many times (probably has little impact on performance)
         self.dt = 0 #Time step for particular solar system -- required for dv calculations (as passed from "parent" simulation)
         #print(permutations())
-        
+        self.G = 4*(np.pi)**2 #Value of G, assuming radius is 1AU, time is 1 year, and the mass of the planet is 1
         
         
         #x = np.array([0,1,2,3])
@@ -125,7 +125,7 @@ class SolarSystem:
     def calcDV(self, fieldBody, body):
         denom = mag(body.pos - fieldBody.pos) ** 3
         # -1 used instead of -G (G normalised as 1 in this model)
-        dv = -1 * self.dt * body.pos * fieldBody.mass / denom
+        dv = -self.G * self.dt * body.pos * fieldBody.mass / denom
         return dv
     
     #Only require kinetic energies of planets and not the Sun's? Though its KE should be zero? But efficiency
@@ -238,7 +238,7 @@ class BodyRenderer:
     def __init__(self,mass,radius,colour):
         self.mass = mass # Here mass is only used to scale the visible radius of the rendered sphere
         self.radius = radius
-        self.sphere =  sphere(pos=vector(0,0,0), radius=self.radius*self.mass,color=colour)
+        self.sphere =  sphere(pos=vector(0,0,0), radius=self.radius,color=colour)
         self.trace = curve(radius = 0.0025, color = colour)
         
     
@@ -317,10 +317,10 @@ class Simulation:
          
             
             #Calculates planetary updates based upon velocity-verlet numerical method
-            #self.system.VelocityVerlet()
+            self.system.VelocityVerlet()
             
             #Calculates planetary updates based upon Euler numerical method
-            self.system.Euler()
+            #self.system.Euler()
             
             
             #Increments steps
@@ -486,13 +486,13 @@ class Simulation:
         
         
 
-STAR = CelestialBody(1000,vector(0,0,0),vector(0,0,0),0.0001)       #Creates Star
-PLANET1 = CelestialBody(1, vector(0,1,0),-vector(25,0,0),0.1)       #Creates planet
+STAR = CelestialBody(0.75,vector(0,0,0),vector(0,0,0),0.4)       #Creates Star
+PLANET1 = CelestialBody(3e-6, vector(0,1,0),-vector(2*np.pi,0,0),0.06)       #Creates planet
 PLANET2 = CelestialBody(0.5, vector(0,3,0),-vector(10,0,0),0.1)     #Creates planet
 PLANET3 = CelestialBody(0.1, vector(0,4.5,0), -vector(3,0,0),0.1)   #Creates planet
 
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
-BODIES = np.array([STAR,PLANET1,PLANET2])#Creates solar system made up of celestial bodies found in np.array -- BODIES
+BODIES = np.array([STAR,PLANET1])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
