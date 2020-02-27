@@ -10,11 +10,13 @@ from vpython import * #For rendering
 import numpy as np     #For optimisation
 import matplotlib as mp #For plots
 import matplotlib.pyplot as p
+#from tqdm import tqdm
 #from scipy import signal #For resampling data to mean -- NO LONGER USING RESAMPLING
 
 
 #Increase the pixel density of figures created
 mp.rcParams['figure.dpi'] = 300
+
 
 '''
 dt = 0.001
@@ -192,7 +194,9 @@ class SolarSystem:
                 
         
     
-        
+    def createMatrix(self):
+        M = np.zeros(shape=(self.numBodies,self.numBodies))
+        return M
 
                 
 '''
@@ -277,9 +281,10 @@ class Simulation:
         - CONSTRUCTS THE BAKED SIMULATION (self.bake)
     '''
     def run(self):
-        print("SIMULATION INITIALISED...")
+        print("\nSIMULATION INITIALISED...")
         #print(self.system.pairs) - DEBUGGING
         #print(self.monthLength) - DEBUGGING
+        #pbar = tqdm(total=self.maxstep)
         while self.step <= self.maxstep:
             #rate(100) Don't need to limit this as this is running the simulation
             
@@ -328,6 +333,7 @@ class Simulation:
             
             
             #Increments steps
+            #pbar.update(1)
             self.step += 1
         '''print("FINAL BAKE")
         print(self.bake)
@@ -336,7 +342,7 @@ class Simulation:
         PURELY FOR DEBUGGING
         '''
         
-        print("SIMULATION BAKED -- PREPARING TO RENDER...")
+        print("\nSIMULATION BAKED -- PREPARING TO RENDER...")
         
         '''
         PURELY FOR DEBUGGING AGAIN HERE
@@ -403,6 +409,13 @@ class Simulation:
         #print(Evals)
        # print(Eerror)
         #p.errorbar(np.array([i*100 for i in range(Evals.size)]),Evals,Eerror,label="Total Energy",color='r',ls='-', marker='x',capsize=5,capthick=1,ecolor='r')
+        
+        '''
+        While currently subtracting planet position from sun's position is redundant,
+        the code could be expanded to have the sun move under gravitational forces from other planets
+        and this analysis would still function correctly
+        '''
+        
         
         relposition=np.subtract(self.bake[:,2],self.bake[:,1])  # distance between planet one and planet two
         posrelsun2= np.subtract(self.bake[:,2], self.bake[:,0]) # distance of planet 2 away from the sun
@@ -492,7 +505,7 @@ class Simulation:
         print(line)
         
         for i in range(self.bake.shape[0]):
-            rate(100)
+            #rate(100)
             for j in range(renderers.size):
                 area = 0
                 if j > 0:
@@ -519,7 +532,7 @@ class Simulation:
         p.plot(self.pes,'g',label="Potential Energy")
         p.plot(self.kes,'b',label="Kinetic Energy")
         p.xlabel("Time (samples)")
-        p.ylabel("Energy")
+        p.ylabel("Energy ("+r"$M_{"+u"\u2295"+"}Au^2y^{-2}$)")
         p.legend()
         p.show()
         
@@ -530,13 +543,13 @@ class Simulation:
             #np.savetxt("foo"+str(i)+".csv", areas, delimiter=",")
             p.plot(x[0],areas[x[0]],'o',label=self.system.bodies[i+1].name, markersize=1)
         p.xlabel("Time (samples)")
-        p.ylabel("Area swept out")
+        p.ylabel("Area swept out ("+r"$Au^2$)")
         p.legend()
         p.show()
         
         
 #Creates the Sun -- Mass set to be 330 000 EARTH MASSES
-STAR = CelestialBody(330000,vector(0,0,0),vector(0,0,0),0.1,"Sun",color.yellow)       #Creates Star
+STAR = CelestialBody(330000,vector(0,0,0),vector(0,0,0),0.09,"Sun",color.yellow)       #Creates Star
 '''
 INITIAL CONDITIONS WITH G NORMALISED AS 1 AND HONESTLY IT NEVER WORKED
 
@@ -557,19 +570,20 @@ Now let's take some inspo from our Solar System
 
 '''
 
-MERCURY = CelestialBody(0.055,vector(0,0.3606,0),-vector(10.02,0,0),0.06,"Mercury",color.green)
+MERCURY = CelestialBody(0.055,vector(0,0.3606,0),-vector(10.02,0,0),0.05,"Mercury",color.green)
 VENUS = CelestialBody(0.815,vector(0,0.728,0),-vector(7.388,0,0),0.06,"Venus",color.yellow)
-EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.06,"Earth",color.blue)
+EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.05,"Earth",color.blue)
+MOON = CelestialBody(0.012,vector(0,1.003,0),-vector(0.22,0,0),0.003,"Moon",color.white)
 #MARS = CelestialBody(0.107,vector(0,9.55,0),-vector(5.082,0,0),0.04)
 #JUPITER = CelestialBody(317.8,vector(0,5.207,0),-vector(2.754,0,0),0.09)
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
-BODIES = np.array([STAR,MERCURY,EARTH])#Creates solar system made up of celestial bodies found in np.array -- BODIES
+BODIES = np.array([STAR,EARTH,MOON])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
 #Creates simulation with month length of 20 steps, dt = 0.001, and 10000 maxsteps
 sim = Simulation(SYSTEM,20,0.001,10000)
 #Runs/bakes simulation
-sim.run()
+#sim.run()
 #Renders simulation using vpython and plots all graphs
-sim.render()
+#sim.render()
