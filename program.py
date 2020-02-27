@@ -165,6 +165,10 @@ class SolarSystem:
         for i in range(self.pairs.shape[0]):
             #For every permutatiuon incrementally update velocity and position of each planet in turn
             #FACTOR OF 2 APPEARS TO FIX MAJOR ISSUE WITH ORBITS -- NOW ACCEPTS SOLAR SYSTEM
+            '''
+            Actually it appears that the factor (self.numBodies-1) is what fixes the problem in general terms 
+            '''            
+            
             self.pairs[i][1].vel += (self.numBodies-1)*self.calcDV(self.pairs[i][0],self.pairs[i][1])
             self.pairs[i][1].pos += self.pairs[i][1].vel * self.dt     
         
