@@ -161,6 +161,7 @@ class SolarSystem:
     def Euler(self):
         for i in range(self.pairs.shape[0]):
             #For every permutatiuon incrementally update velocity and position of each planet in turn
+            #FACTOR OF 2 APPEARS TO FIX MAJOR ISSUE WITH ORBITS -- NOW ACCEPTS SOLAR SYSTEM
             self.pairs[i][1].vel += 2*self.calcDV(self.pairs[i][0],self.pairs[i][1])
             self.pairs[i][1].pos += self.pairs[i][1].vel * self.dt     
         
@@ -573,11 +574,11 @@ Now let's take some inspo from our Solar System
 MERCURY = CelestialBody(0.055,vector(0,0.3606,0),-vector(10.02,0,0),0.05,"Mercury",color.green)
 VENUS = CelestialBody(0.815,vector(0,0.728,0),-vector(7.388,0,0),0.06,"Venus",color.yellow)
 EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.05,"Earth",color.blue)
-MOON = CelestialBody(0.012,vector(0,1.003,0),-vector(0.22,0,0),0.003,"Moon",color.white)
-MARS = CelestialBody(0.107,vector(0,0.955,0),-vector(5.082,0,0),0.04,"Mars",color.red)
-#JUPITER = CelestialBody(317.8,vector(0,5.207,0),-vector(2.754,0,0),0.09)
+MARS = CelestialBody(0.107,vector(0,1.38,0),-vector(5.082,0,0),0.04,"Mars",color.red)
+#MOON = CelestialBody(0.012,vector(0,1.003,0),-vector(0.22,0,0),0.003,"Moon",color.white)
+JUPITER = CelestialBody(317.8,vector(0,5.207,0),-vector(2.754,0,0),0.09,"Jupiter",color.orange)
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
-BODIES = np.array([STAR,MERCURY,EARTH, VENUS, MARS])#Creates solar system made up of celestial bodies found in np.array -- BODIES
+BODIES = np.array([STAR,MERCURY,EARTH,VENUS,MARS])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
