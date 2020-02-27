@@ -2,7 +2,11 @@
 """
 Created on Mon Feb 17 20:50:34 2020
 
-@author: Oskar
+@authors:   Oskar Rokhlin
+            Sam Butler
+            Lucy Trevors
+            Philip Jones
+            Cameron Espaas
 """
 
 
@@ -41,7 +45,7 @@ class SolarSystem:
         self.numBodies = bodies.size # Prevents calling the .size attribute too many times (probably has little impact on performance)
         self.dt = 0 #Time step for particular solar system -- required for dv calculations (as passed from "parent" simulation)
         #print(permutations())
-        self.G = 1.6233e-4 #Value of G, assuming radius is 1AU, time is 1 year, and the mass of the planet is 1
+        self.G = 1.6233e-4 #Value of G with distance in Au, time in years, and the mass in Earth Masses
         
         
         #x = np.array([0,1,2,3])
@@ -86,20 +90,7 @@ class SolarSystem:
         #print(self.pairs.shape)
         
         #This removes any permutation/pair whose final element is the singular star
-    '''   
-    def correctPairs(self):
-        print("Correcting pairs")
-        print(self.pairs.shape)
-        for i in range(self.pairs.shape[0]):
-            if self.pairs[i][1] = = self.bodies[0] or self.pairs[i][0]==self.pairs[i][1]: #The sun is at 0 and we don't want to change its pos
-                np.delete(self.pairs,i)
-    '''
-    '''
-    def updateBodyVelocities(self):
-        for i in range(self.pairs.shape[0]):
-            self.pairs[i][1].vel -= self.calcDV(self.pairs[i][0],self.pairs[i][1])
-    '''
-    
+   
     def correctPairs(self):
         toDelete = []
         for i in range(self.pairs.shape[0]):
@@ -108,28 +99,13 @@ class SolarSystem:
                 toDelete.append(i)
         self.pairs = np.delete(self.pairs,toDelete,0)
     
-    '''
-    def correctPairs(self):
-        toDelete = []
-        print("Correcting pairs")
-        for i in range(self.pairs.shape[0]):
-            if self.pairs[i][1] == 0 or self.pairs[i][0] == self.pairs[i][1]:
-                print(self.pairs[i])
-                toDelete.append(i)
-        print(toDelete)
-        self.pairs=np.delete(self.pairs,toDelete,0)
-        
-        #self.pairs = np.unique(self.pairs,)
-        print("Unique Pairs")
-        print(self.pairs)
-        
-    '''     
+ 
     
     #Calculates a*dt (dv) based on Newton's Law of Gravitation
     def calcDV(self, fieldBody, body):
         denom = mag(body.pos - fieldBody.pos) ** 3
         # -1 used instead of -G (G normalised as 1 in this model)
-        dv = -self.G * self.dt * body.pos * fieldBody.mass / denom
+        dv = (-1 * self.G * self.dt * body.pos * fieldBody.mass) / denom
         return dv
     
     #Only require kinetic energies of planets and not the Sun's? Though its KE should be zero? But efficiency
@@ -160,6 +136,15 @@ class SolarSystem:
             dv_arr = np.append(dv_arr,self.calcDV(self.pairs[i][0],self.pairs[i][1]))
         return dv_arr ## corresponds to the celestial body pairs dv of pairs[i][1]
     
+    '''
+    
+    Velocity-Verlet method was successfully implemented however was not used
+    in final simluation as Euler seemed to give more stable results and is 
+    sufficiently "accurate"
+    
+    '''
+    
+    
     def VelocityVerlet(self):
         dvi_arr = self.getDvArr()
         
@@ -176,7 +161,7 @@ class SolarSystem:
     def Euler(self):
         for i in range(self.pairs.shape[0]):
             #For every permutatiuon incrementally update velocity and position of each planet in turn
-            self.pairs[i][1].vel += self.calcDV(self.pairs[i][0],self.pairs[i][1])
+            self.pairs[i][1].vel += 2*self.calcDV(self.pairs[i][0],self.pairs[i][1])
             self.pairs[i][1].pos += self.pairs[i][1].vel * self.dt     
         
     #Updates posistion for all planets when using velocity verlet method
@@ -194,9 +179,7 @@ class SolarSystem:
                 
         
     
-    def createMatrix(self):
-        M = np.zeros(shape=(self.numBodies,self.numBodies))
-        return M
+            
 
                 
 '''
@@ -330,10 +313,10 @@ class Simulation:
             
             #Calculates planetary updates based upon Euler numerical method
             self.system.Euler()
+                      
             
-            
-            #Increments steps
             #pbar.update(1)
+            #Increments steps
             self.step += 1
         '''print("FINAL BAKE")
         print(self.bake)
@@ -359,7 +342,7 @@ class Simulation:
         self.kes = self.bake[:, -3]
      
         
-    
+    # Iterates through all planets present within system and calculates area swept out in one "month"
     def KeplerForPlanets(self,step):
         areas = np.array([]) #Empty area of areas to be populated by areas swept by each planet
         for i in range(1,self.nbodies): # The first body is a star soo...
@@ -367,7 +350,7 @@ class Simulation:
             #print("KEPLER")
         return areas
         
-    #
+    # Does the actual calculation for area swept out by planet
     def Kepler(self, Planet,step):
         areatotal = 0
         #monthlength = 100
@@ -393,6 +376,8 @@ class Simulation:
             
         '''
         
+        
+        #Sets up array holding BodyRenderer objects -- for representing solar system graphically
         renderers = np.array([])
         for i in range(self.nbodies):
             renderers = np.append(renderers,BodyRenderer(self.system.bodies[i].mass,self.system.bodies[i].radius,self.system.bodies[i].colour))
@@ -416,58 +401,37 @@ class Simulation:
         and this analysis would still function correctly
         '''
         
-        
+        '''
         relposition=np.subtract(self.bake[:,2],self.bake[:,1])  # distance between planet one and planet two
         posrelsun2= np.subtract(self.bake[:,2], self.bake[:,0]) # distance of planet 2 away from the sun
         posrelsun1= np.subtract(self.bake[:,1], self.bake[:,0]) # distance between planet 1 and the sun
         #print(relposition)
-        
-        relx = np.array([])
-        rely = np.array([])
-        for i in range(relposition.size):               # a graph is created to plot the magnitude of the distance between the two planets
-            relx = np.append(relx,relposition[i].x)     # calculates the relative x displacement
-            rely = np.append(rely,relposition[i].y)     # calculated the relative y displacement 
-            c= np.sqrt((rely)**2+(relx)**2)             # calculates the magnitude of the displacement
-        #print("Subtract worked")
-        p.xlabel("Time[samples]")
-        p.ylabel ("Displacement")
-        p.plot(c)                               # graph is plotted
-        p.show()
-        
-        relx = np.array([])
-        rely = np.array([])
-        for i in range(posrelsun2.size):                # the same is repeated between planet 2 and the sun
-            relx=np.append(relx,posrelsun2[i].x)
-            rely=np.append(rely,posrelsun2[i].y)
-            d= np.sqrt((rely)**2+(relx)**2)
-        p.xlabel("Time[samples]")
-        p.ylabel ("Displacement")
-        p.plot(d)
-        p.show()
-        
-        relx = np.array([])
-        rely = np.array([])
-        for i in range(posrelsun1.size):                # the same is reppeated between planet 1 and the sun 
-            relx=np.append(relx,posrelsun1[i].x)
-            rely=np.append(rely,posrelsun1[i].y)
-            d= np.sqrt((rely)**2+(relx)**2)
-        p.xlabel("Time[samples]")
-        p.ylabel ("Displacement")
-        p.plot(d)
-        p.show()
-        
-        
-        
         '''
-        self.energyPlot(self.energies,"Total Energy","r")
-        self.energyPlot(self.pes,"Potential Energy","g")
-        self.energyPlot(self.kes,"Kinetic Energy","b")
-        '''
+        
+        #Plots graphs of relative positions between different planets and planets and Sun
+        dist_21 = self.plotRelDisplacement(1,2)
+        
+        dist_10 = self.plotRelDisplacement(0,1)
+        
+        dist_20 = self.plotRelDisplacement(0,2)
+        
+        #Calculates average distances between planets and average orbit radii
+        avg_dist_21 = np.mean(dist_21)
+        dist_21_err = self.getError(dist_21)
+        
+        avg_dist_10 = np.mean(dist_10)
+        dist_10_err = self.getError(dist_10)
+        
+        avg_dist_20 = np.mean(dist_20)
+        dist_20_err = self.getError(dist_20)
+        
         #print(self.kes)
         
+        #Plots graphs of energies and areas swept out by planets
         self.plotEnergies()
         self.plotAreas()
         
+        #Calculates average energies/errors with errors
         avgKE = np.mean(self.kes)
         KE_error = self.getError(self.kes)
         avgPE = np.mean(self.pes)
@@ -489,9 +453,18 @@ class Simulation:
         print(avgE)
         '''
         
-        line = "+"+"-"*87+"+"
+        '''
+        A few variables for making printing a summative table easier
+        '''
+        
+        line = "+"+"-"*15+"+"+("-"*23+"+")*3
         energyUnits = "|M(Earth)Au^2y^-2\t|"
         areaUnits = "|Au^2\t\t\t|"
+        distUnits = "|Au\t\t\t|"
+        
+        '''
+        START PRINTING TABLE OF SUMMARY RESULTS WITH ERRORS        
+        '''
         
         print("\n")
         print(line)
@@ -500,33 +473,42 @@ class Simulation:
         print("|Total Energy\t|"+str(avgE)+"\t|"+str(E_error)+"\t"+energyUnits)
         print("|Kinetic Energy\t|"+str(avgKE)+"\t|"+str(KE_error)+"\t"+energyUnits)
         print("|Pot. Energy\t|"+str(avgPE)+"\t|"+str(PE_error)+"\t"+energyUnits)
+        print(line)
         for i in range(areas_avg.shape[0]):
             print("|Area - "+self.system.bodies[i+1].name + "\t|"+str(areas_avg[i][0])+"\t|"+str(areas_avg[i][1])+"\t"+areaUnits)
         print(line)
+        print("|Avg Dist (E-M):|"+str(avg_dist_21)+"\t|"+str(dist_21_err)+"\t"+distUnits)
+        print("|Avg Dist (M-S):|"+str(avg_dist_10)+"\t|"+str(dist_10_err)+"\t"+distUnits)
+        print("|Avg Dist (E-S):|"+str(avg_dist_20)+"\t|"+str(dist_20_err)+"\t"+distUnits)       
+        print(line)
+                              
+        '''
+        END TABLE 
         
+        ALSO...
+        
+        Finally we iterate across the baked simulation and update the renderers positions at a maximum of 100 times per second
+        '''          
         for i in range(self.bake.shape[0]):
-            #rate(100)
+            rate(100)
             for j in range(renderers.size):
                 area = 0
                 if j > 0:
                     area = self.bake[:,self.nbodies+j][i]
                 renderers[j].updateBody(self.bake[i][j],area)
-         
+        #Now the simulation has finished rendering
+            
         print("\n")
         print("SIMULATION COMPLETE")
         
+    #Returns the standard error of a set of data points
     def getError(self,raw):
         error = np.std(raw)/np.sqrt(raw.size)
         return error
-    
-    '''
-    def energyPlot(self,energies_raw,label,colour):
-        energies = np.reshape(energies_raw,(100,100))
-        values = np.mean(energies,axis=1)
-        errors = np.std(energies,axis=1,dtype=np.float64)/np.sqrt(energies.shape[1])
-        p.errorbar(np.array([i*100 for i in range(values.size)]),values,errors,label=label,color=colour,ls='-', marker='x',capsize=5,capthick=1,ecolor=colour)
-    '''
-    
+ 
+   
+
+    #Plots the different energies of the system (kinetic,potential, total)    
     def plotEnergies(self):
         p.plot(self.energies,'r',label="Total Energy")
         p.plot(self.pes,'g',label="Potential Energy")
@@ -536,6 +518,7 @@ class Simulation:
         p.legend()
         p.show()
         
+    #Plots areas swept out in equal time steps 
     def plotAreas(self):
         for i in range(self.nbodies-1):
             areas = self.bake[:,self.nbodies+i]
@@ -546,6 +529,23 @@ class Simulation:
         p.ylabel("Area swept out ("+r"$Au^2$)")
         p.legend()
         p.show()
+    
+    #Plots the relative distances of two celestial bodies 
+    def plotRelDisplacement(self,index1,index2):
+        relpos = np.subtract(self.bake[:,index2],self.bake[:,index1])
+        mags = np.array([])
+        for i in range(relpos.size):
+            #print(mag(relpos[i]))
+            mags = np.append(mags,mag(relpos[i]))
+        p.plot(mags, label=str(self.system.bodies[index2].name)+" from "+str(self.system.bodies[index1].name))
+        p.xlabel("Time [samples]")
+        p.ylabel("Distance [Au]")
+        #p.figure(index2)
+        p.legend()
+        p.show()
+        return mags
+
+        
         
         
 #Creates the Sun -- Mass set to be 330 000 EARTH MASSES
@@ -574,16 +574,16 @@ MERCURY = CelestialBody(0.055,vector(0,0.3606,0),-vector(10.02,0,0),0.05,"Mercur
 VENUS = CelestialBody(0.815,vector(0,0.728,0),-vector(7.388,0,0),0.06,"Venus",color.yellow)
 EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.05,"Earth",color.blue)
 MOON = CelestialBody(0.012,vector(0,1.003,0),-vector(0.22,0,0),0.003,"Moon",color.white)
-#MARS = CelestialBody(0.107,vector(0,9.55,0),-vector(5.082,0,0),0.04)
+MARS = CelestialBody(0.107,vector(0,0.955,0),-vector(5.082,0,0),0.04,"Mars",color.red)
 #JUPITER = CelestialBody(317.8,vector(0,5.207,0),-vector(2.754,0,0),0.09)
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
-BODIES = np.array([STAR,EARTH,MOON])#Creates solar system made up of celestial bodies found in np.array -- BODIES
+BODIES = np.array([STAR,MERCURY,EARTH, VENUS, MARS])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
 #Creates simulation with month length of 20 steps, dt = 0.001, and 10000 maxsteps
 sim = Simulation(SYSTEM,20,0.001,10000)
 #Runs/bakes simulation
-#sim.run()
-#Renders simulation using vpython and plots all graphs
-#sim.render()
+sim.run()
+#Renders simulation using vpython and plots all graphsfor j in range(self.numBodies)
+sim.render()
