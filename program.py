@@ -21,6 +21,7 @@ import matplotlib.pyplot as p
 #Increase the pixel density of figures created
 mp.rcParams['figure.dpi'] = 300
 
+#Increase resolution of render window for more planets
 scene.width = 1280
 scene.height = 720
 
@@ -480,11 +481,21 @@ class Simulation:
         for i in range(areas_avg.shape[0]):
             print("|Area - "+self.system.bodies[i+1].name + "\t|"+str(areas_avg[i][0])+"\t|"+str(areas_avg[i][1])+"\t"+areaUnits)
         print(line)
-        print("|Avg Dist (E-M):|"+str(avg_dist_31)+"\t|"+str(dist_31_err)+"\t"+distUnits)
-        print("|Avg Dist (M-S):|"+str(avg_dist_10)+"\t|"+str(dist_10_err)+"\t"+distUnits)
-        print("|Avg Dist (E-S):|"+str(avg_dist_30)+"\t|"+str(dist_30_err)+"\t"+distUnits)       
+        print("|Avg Dist (E-Me)|"+str(avg_dist_31)+"\t|"+str(dist_31_err)+"\t"+distUnits)
+        print("|Avg Dist (Me-S)|"+str(avg_dist_10)+"\t|"+str(dist_10_err)+"\t"+distUnits)
+        print("|Avg Dist (E-S) |"+str(avg_dist_30)+"\t|"+str(dist_30_err)+"\t"+distUnits)       
         print(line)
-                              
+        
+        #Average orbits
+        
+        orbs = self.getAvgOrbits()
+        
+        print("|Average Orbit Radius For Planets\t\t\t\t\t\t\t|")
+        print(line)
+        
+        for i in range(1,self.nbodies):
+            print("|"+self.system.bodies[i].name+"\t|"+str(orbs[0][i-1])+"\t|"+str(orbs[1][i-1])+"\t"+distUnits)
+        print(line)
         '''
         END TABLE 
         
@@ -540,7 +551,7 @@ class Simulation:
         for i in range(relpos.size):
             #print(mag(relpos[i]))
             mags = np.append(mags,mag(relpos[i]))
-        p.plot(mags, label=str(self.system.bodies[index2].name)+" from "+str(self.system.bodies[index1].name))
+        p.plot(mags[0:1000], label=str(self.system.bodies[index2].name)+" from "+str(self.system.bodies[index1].name))
         p.xlabel("Time [samples]")
         p.ylabel("Distance [Au]")
         #p.figure(index2)
@@ -548,6 +559,21 @@ class Simulation:
         p.show()
         return mags
 
+    
+    def getAvgOrbits(self):
+        orbits = np.array([])
+        errors = np.array([])
+        for i in range(1,self.nbodies):
+            dists = np.array(self.bake[:,i])
+            mags = np.array([])
+            for j in range(dists.size):
+                mags = np.append(mags,mag(dists[j]))
+                
+            avg_dist = np.mean(mags)
+            error = self.getError(mags)
+            orbits = np.append(orbits,avg_dist)
+            errors = np.append(errors,error)
+        return np.stack((orbits,errors))
         
         
         
@@ -574,24 +600,17 @@ Now let's take some inspo from our Solar System
 '''
 
 MERCURY = CelestialBody(0.055,vector(0,0.3606,0),-vector(10.02,0,0),0.05,"Mercury",color.green)
-VENUS = CelestialBody(0.815,vector(0,0.728,0),-vector(7.388,0,0),0.06,"Venus",color.yellow)
-EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.05,"Earth",color.blue)
-MARS = CelestialBody(0.107,vector(0,1.52,0),-vector(5.082,0,0),0.04,"Mars",color.red)
+VENUS = CelestialBody(0.815,vector(0,0.728,0),-vector(7.388,0,0),0.06,"Venus  ",color.yellow)
+EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.05,"Earth  ",color.blue)
+MARS = CelestialBody(0.107,vector(0,1.52,0),-vector(5.082,0,0),0.04,"Mars   ",color.red)
 #MOON = CelestialBody(0.012,vector(0,1.003,0),-vector(0.22,0,0),0.003,"Moon",color.white)
 JUPITER = CelestialBody(317.8,vector(0,5.207,0),-vector(2.754,0,0),0.09,"Jupiter",color.orange)
-<<<<<<< HEAD
-SATURN = CelestialBody(95.16,vector(0,9.6,0),-vector(2.0403,0,0),0.07,"Saturn",color.orange)
-URANUS = CelestialBody(14.54,vector(0,19.229,0),-vector(1.44189,0,0),0.07,"Uranus",color.blue)
+SATURN = CelestialBody(95.16,vector(0,9.6,0),-vector(2.0403,0,0),0.07,"Saturn ",color.orange)
+URANUS = CelestialBody(14.54,vector(0,19.229,0),-vector(1.44189,0,0),0.07,"Uranus ",color.blue)
 NEPTUNE = CelestialBody(17.15,vector(0,30.1,0),-vector(1.15549,0,0),0.07,"Neptune",color.blue)
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
 BODIES = np.array([STAR,MERCURY,VENUS,EARTH,MARS,JUPITER,SATURN,URANUS,NEPTUNE])#Creates solar system made up of celestial bodies found in np.array -- BODIES
-=======
-SATURN = CelestialBody(95.16,vector(0,9.6,0),-vector(2.04,0,0),0.09,"Saturn",color.orange)
-URANUS = CelestialBody(14.54,vector(0,19.2,0),-vector(1.44,0,0),0.09,"Uranus",color.orange)
-NEPTUNE = CelestialBody(17.15,vector(0,30.1,0),-vector(1.155,0,0),0.09,"Neptune",color.orange)
-#Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
-BODIES = np.array([STAR,MERCURY,EARTH,VENUS,MARS,JUPITER,SATURN,URANUS, NEPTUNE])#Creates solar system made up of celestial bodies found in np.array -- BODIES
->>>>>>> b6ac7d891e845ec063157cf321a76fb36bc31ef4
+
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
