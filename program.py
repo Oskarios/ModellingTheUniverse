@@ -21,6 +21,8 @@ import matplotlib.pyplot as p
 #Increase the pixel density of figures created
 mp.rcParams['figure.dpi'] = 300
 
+scene.width = 1280
+scene.height = 720
 
 '''
 dt = 0.001
@@ -577,8 +579,10 @@ EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.05,"Earth",color.blue
 MARS = CelestialBody(0.107,vector(0,1.52,0),-vector(5.082,0,0),0.04,"Mars",color.red)
 #MOON = CelestialBody(0.012,vector(0,1.003,0),-vector(0.22,0,0),0.003,"Moon",color.white)
 JUPITER = CelestialBody(317.8,vector(0,5.207,0),-vector(2.754,0,0),0.09,"Jupiter",color.orange)
+SATURN = CelestialBody(95.16,vector(0,9,0),-vector(2.033,0,0),0.07,"Saturn",color.orange)
+URANUS = CelestialBody(14.54,vector(0,19.229,0),-vector(1.432,0,0),0.07,"Uranus",color.blue)
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
-BODIES = np.array([STAR,MERCURY,EARTH,VENUS,MARS,JUPITER])#Creates solar system made up of celestial bodies found in np.array -- BODIES
+BODIES = np.array([STAR,MERCURY,EARTH,VENUS,MARS,JUPITER,SATURN,URANUS])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
