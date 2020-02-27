@@ -1,0 +1,4 @@
+Planet		Speed		Radius 		Mass
+Saturn		2.04043		9.6		95.16
+Uranus		1.44189		19.2		14.54
+Neptune		1.15549		30.1		17.15
