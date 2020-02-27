@@ -412,21 +412,21 @@ class Simulation:
         '''
         
         #Plots graphs of relative positions between different planets and planets and Sun
-        dist_21 = self.plotRelDisplacement(1,2)
+        dist_31 = self.plotRelDisplacement(1,3)
         
         dist_10 = self.plotRelDisplacement(0,1)
         
-        dist_20 = self.plotRelDisplacement(0,2)
+        dist_30 = self.plotRelDisplacement(0,3)
         
         #Calculates average distances between planets and average orbit radii
-        avg_dist_21 = np.mean(dist_21)
-        dist_21_err = self.getError(dist_21)
+        avg_dist_31 = np.mean(dist_31)
+        dist_31_err = self.getError(dist_31)
         
         avg_dist_10 = np.mean(dist_10)
         dist_10_err = self.getError(dist_10)
         
-        avg_dist_20 = np.mean(dist_20)
-        dist_20_err = self.getError(dist_20)
+        avg_dist_30 = np.mean(dist_30)
+        dist_30_err = self.getError(dist_30)
         
         #print(self.kes)
         
@@ -480,9 +480,9 @@ class Simulation:
         for i in range(areas_avg.shape[0]):
             print("|Area - "+self.system.bodies[i+1].name + "\t|"+str(areas_avg[i][0])+"\t|"+str(areas_avg[i][1])+"\t"+areaUnits)
         print(line)
-        print("|Avg Dist (E-M):|"+str(avg_dist_21)+"\t|"+str(dist_21_err)+"\t"+distUnits)
+        print("|Avg Dist (E-M):|"+str(avg_dist_31)+"\t|"+str(dist_31_err)+"\t"+distUnits)
         print("|Avg Dist (M-S):|"+str(avg_dist_10)+"\t|"+str(dist_10_err)+"\t"+distUnits)
-        print("|Avg Dist (E-S):|"+str(avg_dist_20)+"\t|"+str(dist_20_err)+"\t"+distUnits)       
+        print("|Avg Dist (E-S):|"+str(avg_dist_30)+"\t|"+str(dist_30_err)+"\t"+distUnits)       
         print(line)
                               
         '''
@@ -579,10 +579,11 @@ EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.05,"Earth",color.blue
 MARS = CelestialBody(0.107,vector(0,1.52,0),-vector(5.082,0,0),0.04,"Mars",color.red)
 #MOON = CelestialBody(0.012,vector(0,1.003,0),-vector(0.22,0,0),0.003,"Moon",color.white)
 JUPITER = CelestialBody(317.8,vector(0,5.207,0),-vector(2.754,0,0),0.09,"Jupiter",color.orange)
-SATURN = CelestialBody(95.16,vector(0,9,0),-vector(2.033,0,0),0.07,"Saturn",color.orange)
-URANUS = CelestialBody(14.54,vector(0,19.229,0),-vector(1.432,0,0),0.07,"Uranus",color.blue)
+SATURN = CelestialBody(95.16,vector(0,9.6,0),-vector(2.0403,0,0),0.07,"Saturn",color.orange)
+URANUS = CelestialBody(14.54,vector(0,19.229,0),-vector(1.44189,0,0),0.07,"Uranus",color.blue)
+NEPTUNE = CelestialBody(17.15,vector(0,30.1,0),-vector(1.15549,0,0),0.07,"Neptune",color.blue)
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
-BODIES = np.array([STAR,MERCURY,EARTH,VENUS,MARS,JUPITER,SATURN,URANUS])#Creates solar system made up of celestial bodies found in np.array -- BODIES
+BODIES = np.array([STAR,MERCURY,VENUS,EARTH,MARS,JUPITER,SATURN,URANUS,NEPTUNE])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 SYSTEM = SolarSystem(BODIES)
 #SYSTEM.correctPairs()
 
