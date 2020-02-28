@@ -7,6 +7,8 @@ Created on Mon Feb 17 20:50:34 2020
             Lucy Trevors
             Philip Jones
             Cameron Espaas
+        
+WHEN RUNNING IN COMMAND LINE ALL FIGURES MUST BE CLOSED BEFORE SIMULATION WILL DISPLAY
 """
 
 
@@ -551,7 +553,7 @@ class Simulation:
         for i in range(relpos.size):
             #print(mag(relpos[i]))
             mags = np.append(mags,mag(relpos[i]))
-        p.plot(mags[0:1000], label=str(self.system.bodies[index2].name)+" from "+str(self.system.bodies[index1].name))
+        p.plot(mags[0:200], label=str(self.system.bodies[index2].name)+" from "+str(self.system.bodies[index1].name))
         p.xlabel("Time [samples]")
         p.ylabel("Distance [Au]")
         #p.figure(index2)
