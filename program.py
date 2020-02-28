@@ -378,11 +378,7 @@ class Simulation:
         #iterate through self.bake 
         #i.e.
         
-        '''SOME stuff LIKE THIS
-        for i in range(self.bake.shape[0]):
-            sunpos = self.bake[i][0]
-            
-        '''
+
         
         
         #Sets up array holding BodyRenderer objects -- for representing solar system graphically
@@ -494,11 +490,11 @@ class Simulation:
         
         orbs = self.getAvgOrbits()
         
-        print("|Average Orbit Radius For Planets\t\t\t\t\t\t\t|")
+        print("|Average Orbit Radius For Planets (Au)\t\t\t\t|Percentage Difference\t|")
         print(line)
         
         for i in range(1,self.nbodies):
-            print("|"+self.system.bodies[i].name+"\t|"+str(orbs[0][i-1])+"\t|"+str(orbs[1][i-1])+"\t"+distUnits)
+            print("|"+self.system.bodies[i].name+"\t|"+str(orbs[0][i-1])+"\t|"+str(orbs[1][i-1])+"\t|"+str(orbs[2][i-1])+" %\t|")
         print(line)
         '''
         END TABLE 
@@ -564,9 +560,11 @@ class Simulation:
         return mags
 
     
+    #Returns a 2D array of average orbits of planets with standard error of these values
     def getAvgOrbits(self):
         orbits = np.array([])
-        errors = np.array([])
+        errors = np.array([]) #Standard error in calculated value
+        per_errors = np.array([]) #Percentage difference from "actual" value
         for i in range(1,self.nbodies):
             dists = np.array(self.bake[:,i])
             mags = np.array([])
@@ -575,11 +573,16 @@ class Simulation:
                 
             avg_dist = np.mean(mags)
             error = self.getError(mags)
+            per_error = self.getPercentErr(mag(self.system.bodies[i].initpos),avg_dist)
             orbits = np.append(orbits,avg_dist)
             errors = np.append(errors,error)
-        return np.stack((orbits,errors))
+            per_errors = np.append(per_errors,per_error)
+        return np.stack((orbits,errors,per_errors))
         
-        
+    def getPercentErr(self,actual,calculated):
+        diff = abs(actual-calculated)
+        per_diff = 100 * diff/actual
+        return per_diff
         
 #Creates the Sun -- Mass set to be 330 000 EARTH MASSES
 STAR = CelestialBody(330000,vector(0,0,0),vector(0,0,0),0.09,"Sun",color.yellow)       #Creates Star
@@ -599,19 +602,19 @@ Now let's take some inspo from our Solar System
     
     Source for Mass: https://www.google.com/search?q=earth+mass+of+solar+system+planets&rlz=1C1CHBF_enGB885GB885&oq=earth+mass+of+solar+system+planets&aqs=chrome..69i57j33l6.5418j1j7&sourceid=chrome&ie=UTF-8
     Source for Speeds: https://www.google.com/search?q=earth+mass+of+solar+system+planets&rlz=1C1CHBF_enGB885GB885&oq=earth+mass+of+solar+system+planets&aqs=chrome..69i57j33l6.5418j1j7&sourceid=chrome&ie=UTF-8
-    Source for Orbits: https://www.wolframalpha.com/
+    Source for Orbits: https://www.windows2universe.org/our_solar_system/planets_orbits_table.html
 
 '''
 
-MERCURY = CelestialBody(0.055,vector(0,0.3606,0),-vector(10.02,0,0),0.05,"Mercury",color.green)
-VENUS = CelestialBody(0.815,vector(0,0.728,0),-vector(7.388,0,0),0.06,"Venus  ",color.yellow)
+MERCURY = CelestialBody(0.055,vector(0,0.3871,0),-vector(10.02,0,0),0.05,"Mercury",color.green)
+VENUS = CelestialBody(0.815,vector(0,0.7233,0),-vector(7.388,0,0),0.06,"Venus  ",color.yellow)
 EARTH = CelestialBody(1,vector(0,1,0),-vector(6.283,0,0),0.05,"Earth  ",color.blue)
-MARS = CelestialBody(0.107,vector(0,1.52,0),-vector(5.082,0,0),0.04,"Mars   ",color.red)
+MARS = CelestialBody(0.107,vector(0,1.5273,0),-vector(5.082,0,0),0.04,"Mars   ",color.red)
 #MOON = CelestialBody(0.012,vector(0,1.003,0),-vector(0.22,0,0),0.003,"Moon",color.white)
-JUPITER = CelestialBody(317.8,vector(0,5.207,0),-vector(2.754,0,0),0.09,"Jupiter",color.orange)
-SATURN = CelestialBody(95.16,vector(0,9.6,0),-vector(2.0403,0,0),0.07,"Saturn ",color.orange)
-URANUS = CelestialBody(14.54,vector(0,19.229,0),-vector(1.44189,0,0),0.07,"Uranus ",color.blue)
-NEPTUNE = CelestialBody(17.15,vector(0,30.1,0),-vector(1.15549,0,0),0.07,"Neptune",color.blue)
+JUPITER = CelestialBody(317.8,vector(0,5.2028,0),-vector(2.754,0,0),0.09,"Jupiter",color.orange)
+SATURN = CelestialBody(95.16,vector(0,9.5388,0),-vector(2.033,0,0),0.07,"Saturn ",color.orange)
+URANUS = CelestialBody(14.54,vector(0,19.1914,0),-vector(1.44189,0,0),0.07,"Uranus ",color.blue)
+NEPTUNE = CelestialBody(17.15,vector(0,30.0611,0),-vector(1.15549,0,0),0.07,"Neptune",color.blue)
 #Creates numpy array of all celestial bodies -- makes it easier to pass as parameter to instantiate solar system
 BODIES = np.array([STAR,MERCURY,VENUS,EARTH,MARS,JUPITER,SATURN,URANUS,NEPTUNE])#Creates solar system made up of celestial bodies found in np.array -- BODIES
 
